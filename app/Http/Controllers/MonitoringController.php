@@ -49,32 +49,69 @@ class MonitoringController extends Controller
     }
 
     /**
-     * Show monitoring charts.
+     * Show monitoring charts with advanced timeframe options
      */
     public function chart(Request $request)
     {
         $devices = Device::all();
         $selectedDevice = $request->get('device_id', $devices->first()->id ?? null);
-        $days = $request->get('days', 7);
+        $timeframe = $request->get('timeframe', '1_day');
 
-        $startDate = Carbon::now()->subDays($days)->startOfDay();
-        $endDate = Carbon::now()->endOfDay();
+        // Calculate date range based on timeframe
+        $now = Carbon::now();
+        $startDate = match($timeframe) {
+            '10_min' => $now->copy()->subMinutes(10),
+            '30_min' => $now->copy()->subMinutes(30),
+            '1_hour' => $now->copy()->subHour(),
+            '6_hours' => $now->copy()->subHours(6),
+            '12_hours' => $now->copy()->subHours(12),
+            '1_day' => $now->copy()->subDay(),
+            default => $now->copy()->subDay(),
+        };
 
         $monitorings = Monitoring::where('device_id', $selectedDevice)
-            ->whereBetween('recorded_at', [$startDate, $endDate])
+            ->whereBetween('recorded_at', [$startDate, $now])
+            ->with('incidentMarkers')
             ->orderBy('recorded_at')
             ->get();
 
-        // Format data for chart
+        // Format data for chart with incident markers
+        $temperatures = [];
+        $humidities = [];
+        $timestamps = [];
+        $dates = [];
+        $statuses = [];
+        $incidents = [];
+
+        foreach ($monitorings as $monitoring) {
+            $temperatures[] = $monitoring->temperature;
+            $humidities[] = $monitoring->humidity;
+            $timestamps[] = $monitoring->recorded_at->getTimestamp() * 1000; // Convert to milliseconds for ApexCharts
+            $dates[] = $monitoring->recorded_at->format('H:i:s');
+            $statuses[] = $monitoring->status === 'Tidak Aman' ? 'danger' : 'safe';
+            
+            // Add incident markers if present
+            if ($monitoring->incidentMarkers && $monitoring->incidentMarkers->count() > 0) {
+                foreach ($monitoring->incidentMarkers as $marker) {
+                    $incidents[] = [
+                        'x' => $monitoring->recorded_at->getTimestamp() * 1000,
+                        'label' => $marker->note ?? 'Incident'
+                    ];
+                }
+            }
+        }
+
         $chartData = [
-            'temperatures' => $monitorings->pluck('temperature')->toArray(),
-            'humidities' => $monitorings->pluck('humidity')->toArray(),
-            'dates' => $monitorings->pluck('recorded_at')->map(function ($date) {
-                return $date->format('d-m-Y H:i');
-            })->toArray(),
+            'temperatures' => $temperatures,
+            'humidities' => $humidities,
+            'timestamps' => $timestamps,
+            'dates' => $dates,
+            'statuses' => $statuses,
+            'incidents' => $incidents,
+            'timeframe' => $timeframe,
         ];
 
-        return view('monitoring.chart', compact('devices', 'selectedDevice', 'days', 'chartData'));
+        return view('monitoring.chart', compact('devices', 'selectedDevice', 'timeframe', 'chartData'));
     }
 
     /**

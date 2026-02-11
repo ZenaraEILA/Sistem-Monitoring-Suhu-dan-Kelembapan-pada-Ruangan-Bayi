@@ -8,7 +8,7 @@ class ChartService
 {
     /**
      * Generate temperature and humidity chart as PNG image
-     * Format: Area Chart with all data points
+     * Format: Area Chart with all data points and safety zones
      */
     public static function generateMonitoringChart(Collection $monitorings): string
     {
@@ -21,24 +21,31 @@ class ChartService
         $height = 500;
         $image = imagecreatetruecolor($width, $height);
 
-        // Colors
+        // Colors - Enhanced palette
         $white = imagecolorallocate($image, 255, 255, 255);
-        $black = imagecolorallocate($image, 0, 0, 0);
-        $lightGray = imagecolorallocate($image, 245, 245, 245);
-        $gridGray = imagecolorallocate($image, 220, 220, 220);
-        $redColor = imagecolorallocate($image, 220, 53, 69);      // Suhu (Temperature)
-        $redFill = imagecolorallocate($image, 255, 200, 200);     // Suhu Fill (translucent)
-        $blueColor = imagecolorallocate($image, 13, 110, 253);    // Kelembapan (Humidity)
-        $blueFill = imagecolorallocate($image, 173, 216, 230);    // Kelembapan Fill (translucent)
+        $black = imagecolorallocate($image, 33, 37, 41);
+        $darkGray = imagecolorallocate($image, 108, 117, 125);
+        $lightGray = imagecolorallocate($image, 248, 249, 250);
+        $gridGray = imagecolorallocate($image, 230, 230, 230);
+        
+        // Temperature colors
+        $redColor = imagecolorallocate($image, 220, 53, 69);      // Main line
+        $redFill = imagecolorallocate($image, 255, 225, 225);     // Area fill (lighter)
+        $redLight = imagecolorallocate($image, 255, 240, 240);    // Unsafe zone background
+        
+        // Humidity colors
+        $blueColor = imagecolorallocate($image, 13, 110, 253);    // Main line
+        $blueFill = imagecolorallocate($image, 220, 240, 255);    // Area fill (lighter)
+        $blueLight = imagecolorallocate($image, 240, 248, 255);   // Unsafe zone background
 
         // Fill background
         imagefilledrectangle($image, 0, 0, $width, $height, $white);
 
-        // Padding
-        $leftPadding = 80;
-        $rightPadding = 40;
-        $topPadding = 60;
-        $bottomPadding = 80;
+        // Padding - Increased for better labels
+        $leftPadding = 90;
+        $rightPadding = 50;
+        $topPadding = 70;
+        $bottomPadding = 90;
 
         $graphWidth = $width - $leftPadding - $rightPadding;
         $graphHeight = $height - $topPadding - $bottomPadding;
@@ -46,26 +53,39 @@ class ChartService
         // Draw background rectangle
         imagefilledrectangle($image, $leftPadding, $topPadding, $width - $rightPadding, $height - $bottomPadding, $lightGray);
 
-        // Calculate data range
+        // Calculate data range - Fixed range to match web interface
         $temperatures = $monitorings->pluck('temperature')->toArray();
         $humidities = $monitorings->pluck('humidity')->toArray();
 
-        $maxTemp = max($temperatures);
-        $minTemp = min($temperatures);
-        $tempRange = max($maxTemp - $minTemp, 1);
-
-        $maxHum = max($humidities);
-        $minHum = min($humidities);
-        $humRange = max($maxHum - $minHum, 1);
-
-        // Add margin to ranges
-        $maxTemp += $tempRange * 0.1;
-        $minTemp -= $tempRange * 0.1;
+        // Use fixed range like ApexCharts (12-40°C for display, 0-100% for humidity)
+        $minTemp = 12;
+        $maxTemp = 40;
         $tempRange = $maxTemp - $minTemp;
 
-        $maxHum += $humRange * 0.1;
-        $minHum -= $humRange * 0.1;
+        $minHum = 0;
+        $maxHum = 100;
         $humRange = $maxHum - $minHum;
+
+        // Draw safety/unsafe zones first (background)
+        // Temperature unsafe zones: < 15°C and > 30°C
+        if ($minTemp < 15) {
+            $unsafeY1Start = $topPadding + (($minTemp - $minTemp) / $tempRange) * $graphHeight;
+            $unsafeY1End = $topPadding + ((15 - $minTemp) / $tempRange) * $graphHeight;
+            imagefilledrectangle($image, $leftPadding, (int)$unsafeY1Start, $width - $rightPadding, (int)$unsafeY1End, $redLight);
+        }
+        
+        $unsafeY2Start = $topPadding + ((30 - $minTemp) / $tempRange) * $graphHeight;
+        $unsafeY2End = $topPadding + (($maxTemp - $minTemp) / $tempRange) * $graphHeight;
+        imagefilledrectangle($image, $leftPadding, (int)$unsafeY2Start, $width - $rightPadding, (int)$unsafeY2End, $redLight);
+
+        // Humidity unsafe zones: < 35% and > 60%
+        $unsafeHumY1Start = $topPadding + ((100 - 35) / $humRange) * $graphHeight;
+        $unsafeHumY1End = $topPadding + (($maxHum - $minHum) / $humRange) * $graphHeight;
+        imagefilledrectangle($image, $leftPadding, (int)$unsafeHumY1Start, $width - $rightPadding, (int)$unsafeHumY1End, $blueLight);
+        
+        $unsafeHumY2Start = $topPadding;
+        $unsafeHumY2End = $topPadding + ((35 - $minHum) / $humRange) * $graphHeight;
+        imagefilledrectangle($image, $leftPadding, (int)$unsafeHumY2Start, $width - $rightPadding, (int)$unsafeHumY2End, $blueLight);
 
         // Draw grid lines (horizontal)
         imagesetthickness($image, 1);
@@ -74,21 +94,37 @@ class ChartService
             imageline($image, $leftPadding, $y, $width - $rightPadding, $y, $gridGray);
         }
 
-        // Draw axes
-        imagesetthickness($image, 2);
+
+        // Draw axes - Thicker for better appearance
+        imagesetthickness($image, 3);
         imageline($image, $leftPadding, $topPadding, $leftPadding, $height - $bottomPadding, $black);
         imageline($image, $leftPadding, $height - $bottomPadding, $width - $rightPadding, $height - $bottomPadding, $black);
 
-        // Draw title
-        imagestring($image, 5, $leftPadding + 10, 20, 'Grafik Monitoring Suhu & Kelembapan Ruangan', $black);
+        // Draw title - Enhanced styling and positioning
+        $titleText = 'Grafik Monitoring Suhu & Kelembapan Ruangan Bayi';
+        imagestring($image, 5, $leftPadding + 10, 18, $titleText, $black);
+        
+        // Draw subtitle with gradient effect simulation
+        $subtitleText = 'Dual Axis Chart | Temperature (°C) & Humidity (%)';
+        imagestring($image, 2, $leftPadding + 10, 35, $subtitleText, $darkGray);
 
-        // Draw Y-axis labels (Temperature on left)
+        // Draw Y-axis labels - Temperature (Left)
         $fontSize = 2;
-        for ($i = 0; $i <= 5; $i++) {
-            $temp = $maxTemp - ($tempRange / 5) * $i;
-            $y = $topPadding + ($graphHeight / 5) * $i;
-            imagestring($image, $fontSize, $leftPadding - 75, $y - 7, round($temp, 1) . '°C', $redColor);
-            imageline($image, $leftPadding - 3, $y, $leftPadding, $y, $black);
+        for ($i = 0; $i <= 10; $i++) {
+            $temp = $maxTemp - ($tempRange / 10) * $i;
+            $y = $topPadding + ($graphHeight / 10) * $i;
+            imagestring($image, $fontSize, $leftPadding - 85, $y - 8, round($temp, 1) . '°C', $redColor);
+            imagesetthickness($image, 1);
+            imageline($image, $leftPadding - 5, (int)$y, $leftPadding, (int)$y, $darkGray);
+        }
+        
+        // Draw Y-axis labels - Humidity (Right) with better spacing
+        for ($i = 0; $i <= 10; $i++) {
+            $hum = $maxHum - ($humRange / 10) * $i;
+            $y = $topPadding + ($graphHeight / 10) * $i;
+            imagestring($image, $fontSize, $width - $rightPadding + 10, $y - 8, round($hum, 0) . '%', $blueColor);
+            imagesetthickness($image, 1);
+            imageline($image, $width - $rightPadding, (int)$y, $width - $rightPadding + 5, (int)$y, $darkGray);
         }
 
         // Get data points
@@ -105,11 +141,11 @@ class ChartService
         foreach ($monitorings as $index => $monitoring) {
             $x = $leftPadding + ($xStep * $index);
             
-            // Temperature Y coordinate
+            // Temperature Y coordinate (using fixed range)
             $yTemp = $height - $bottomPadding - (($monitoring->temperature - $minTemp) / $tempRange) * $graphHeight;
             
-            // Humidity Y coordinate (scale to same height)
-            $yHum = $height - $bottomPadding - (($monitoring->humidity / 100) * $graphHeight);
+            // Humidity Y coordinate (scaled to full 0-100%)
+            $yHum = $height - $bottomPadding - (($monitoring->humidity - $minHum) / $humRange) * $graphHeight;
             
             $points[$index] = [
                 'x' => $x,
@@ -137,7 +173,7 @@ class ChartService
 
             imagefilledpolygon($image, $tempPolygon, count($tempPolygon) / 2, $redFill);
 
-            // Draw temperature line
+            // Draw temperature line - Thicker
             imagesetthickness($image, 2);
             for ($i = 0; $i < count($points) - 1; $i++) {
                 imageline($image, $points[$i]['x'], $points[$i]['temp'], 
@@ -169,40 +205,60 @@ class ChartService
             }
         }
 
-        // Draw data point dots
+        // Draw data point dots - Larger and more visible
         imagesetthickness($image, 1);
         for ($i = 0; $i < count($points); $i++) {
-            // Temperature points
-            imagefilledarc($image, $points[$i]['x'], $points[$i]['temp'], 4, 4, 0, 360, $redColor, IMG_ARC_PIE);
+            // Temperature points - Larger red dots
+            imagefilledarc($image, (int)$points[$i]['x'], (int)$points[$i]['temp'], 6, 6, 0, 360, $redColor, IMG_ARC_PIE);
+            // Add white border
+            imagearc($image, (int)$points[$i]['x'], (int)$points[$i]['temp'], 6, 6, 0, 360, $white);
             
-            // Humidity points
-            imagefilledarc($image, $points[$i]['x'], $points[$i]['hum'], 4, 4, 0, 360, $blueColor, IMG_ARC_PIE);
+            // Humidity points - Larger blue dots
+            imagefilledarc($image, (int)$points[$i]['x'], (int)$points[$i]['hum'], 6, 6, 0, 360, $blueColor, IMG_ARC_PIE);
+            // Add white border
+            imagearc($image, (int)$points[$i]['x'], (int)$points[$i]['hum'], 6, 6, 0, 360, $white);
         }
 
         // Draw X-axis time labels (show every nth label to avoid crowding)
-        $labelStep = max(1, intval($pointCount / 15)); // Show ~15 labels max
+        $labelStep = max(1, intval($pointCount / 12)); // Show ~12 labels max
         $fontSize = 1;
         for ($i = 0; $i < count($points); $i += $labelStep) {
-            $labelX = $points[$i]['x'] - 15;
-            $labelY = $height - $bottomPadding + 10;
-            imagestring($image, $fontSize, $labelX, $labelY, $points[$i]['time'], $black);
+            $labelX = (int)$points[$i]['x'] - 20;
+            $labelY = $height - $bottomPadding + 12;
+            imagestring($image, $fontSize, $labelX, $labelY, $points[$i]['time'], $darkGray);
         }
 
-        // Draw axis labels
-        imagestring($image, 3, $width - 150, $height - 30, 'Waktu (Jam)', $black);
-        imagestring($image, 3, 10, $topPadding - 20, 'Suhu (°C) & Kelembapan (%)', $black);
+        // Draw axis labels - more prominent
+        imagestring($image, 3, $width - 140, $height - 35, 'Waktu (Jam)', $darkGray);
+        
+        // Left Y-axis label (Temperature)
+        imagestring($image, 2, 5, $topPadding - 5, 'SUHU', $redColor);
+        
+        // Right Y-axis label (Humidity)
+        imagestring($image, 2, $width - 40, $topPadding - 5, 'KELEMBAPAN', $blueColor);
 
-        // Draw legend
-        $legendX = $width - 350;
-        $legendY = $topPadding + 10;
+        // Draw legend with modern styling - Dual Axis Legend
+        $legendX = $width - 400;
+        $legendY = $topPadding + 15;
+        $legendBoxWidth = 200;
+        $legendBoxHeight = 70;
 
-        // Temperature legend
-        imagefilledrectangle($image, $legendX, $legendY, $legendX + 15, $legendY + 15, $redColor);
-        imagestring($image, 2, $legendX + 20, $legendY + 2, 'Suhu (°C)', $redColor);
+        // Legend background with border
+        imagefilledrectangle($image, $legendX - 5, $legendY - 5, $legendX + $legendBoxWidth, $legendY + $legendBoxHeight, $white);
+        imagerectangle($image, $legendX - 5, $legendY - 5, $legendX + $legendBoxWidth, $legendY + $legendBoxHeight, $gridGray);
+        imagesetthickness($image, 2);
+        imageline($image, $legendX - 5, $legendY - 5, $legendX + $legendBoxWidth, $legendY - 5, $redColor);
 
-        // Humidity legend
-        imagefilledrectangle($image, $legendX, $legendY + 20, $legendX + 15, $legendY + 35, $blueColor);
-        imagestring($image, 2, $legendX + 20, $legendY + 22, 'Kelembapan (%)', $blueColor);
+        // Dual Axis Label
+        imagestring($image, 3, $legendX + 5, $legendY + 1, 'DUAL AXIS CHART', $black);
+        
+        // Temperature legend (Left Axis)
+        imagefilledrectangle($image, $legendX + 5, $legendY + 18, $legendX + 17, $legendY + 30, $redColor);
+        imagestring($image, 2, $legendX + 22, $legendY + 18, 'Suhu (°C)', $redColor);
+
+        // Humidity legend (Right Axis)
+        imagefilledrectangle($image, $legendX + 5, $legendY + 35, $legendX + 17, $legendY + 47, $blueColor);
+        imagestring($image, 2, $legendX + 22, $legendY + 35, 'Kelembapan (%)', $blueColor);
 
         // Save image
         $path = storage_path('app/public/charts/');

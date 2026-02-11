@@ -14,11 +14,20 @@ class Device extends Model
         'stability_score',
         'early_warning_patterns',
         'last_stability_check',
+        'ac_enabled',
+        'ac_set_point',
+        'ac_status',
+        'ac_min_temp',
+        'ac_max_temp',
+        'ac_api_url',
+        'ac_api_key',
     ];
 
     protected $casts = [
         'early_warning_patterns' => 'json',
         'last_stability_check' => 'datetime',
+        'ac_enabled' => 'boolean',
+        'ac_status' => 'boolean',
     ];
 
     /**
@@ -51,6 +60,14 @@ class Device extends Model
     public function doctorNotes()
     {
         return $this->hasMany(DoctorNote::class);
+    }
+
+    /**
+     * Get the AC control logs for this device.
+     */
+    public function acLogs()
+    {
+        return $this->hasMany(AcLog::class);
     }
 
     /**

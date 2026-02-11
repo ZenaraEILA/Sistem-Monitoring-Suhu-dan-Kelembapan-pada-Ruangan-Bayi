@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\MonitoringController;
+use App\Http\Controllers\AcControlController;
 
 Route::middleware('api')->prefix('monitoring')->group(function () {
     /**
@@ -26,4 +27,46 @@ Route::middleware('api')->prefix('monitoring')->group(function () {
      * GET /api/monitoring/{deviceId}
      */
     Route::get('/{deviceId}', [MonitoringController::class, 'getLatest']);
+});
+
+/**
+ * AC Control API Routes
+ * Memerlukan authentikasi (middleware auth:sanctum)
+ */
+Route::middleware('auth:sanctum')->prefix('ac-control')->group(function () {
+    /**
+     * Increase AC temperature
+     * POST /api/ac-control/increase
+     */
+    Route::post('/increase', [AcControlController::class, 'increase']);
+
+    /**
+     * Decrease AC temperature
+     * POST /api/ac-control/decrease
+     */
+    Route::post('/decrease', [AcControlController::class, 'decrease']);
+
+    /**
+     * Turn ON AC
+     * POST /api/ac-control/turn-on
+     */
+    Route::post('/turn-on', [AcControlController::class, 'turnOn']);
+
+    /**
+     * Turn OFF AC
+     * POST /api/ac-control/turn-off
+     */
+    Route::post('/turn-off', [AcControlController::class, 'turnOff']);
+
+    /**
+     * Get AC status
+     * GET /api/ac-control/status
+     */
+    Route::get('/status', [AcControlController::class, 'getStatus']);
+
+    /**
+     * Get AC control logs
+     * GET /api/ac-control/logs
+     */
+    Route::get('/logs', [AcControlController::class, 'getLogs']);
 });

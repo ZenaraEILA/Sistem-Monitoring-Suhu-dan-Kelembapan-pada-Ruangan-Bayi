@@ -179,6 +179,9 @@
                         </div>
                     @endif
 
+                    <!-- AC Control Widget -->
+                    @include('dashboard.ac-control-widget', ['device' => $device, 'monitoring' => $monitoring])
+
                     <!-- Statistics for today -->
                     @if(isset($deviceStatistics[$device->id]))
                         <div class="device-stats mb-3">

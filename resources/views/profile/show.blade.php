@@ -10,9 +10,9 @@
     </div>
 </div>
 
-@if (session('success'))
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-    <i class="fas fa-check-circle"></i> {{ session('success') }}
+@if (session('warning'))
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-circle"></i> {{ session('warning') }}
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 @endif
@@ -27,11 +27,30 @@
             <div class="card-body">
                 <div class="row mb-3">
                     <div class="col-md-4 text-center">
-                        <div class="profile-avatar">
-                            <div class="avatar-circle bg-primary text-white" style="width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto;">
-                                <i class="fas fa-user"></i>
-                            </div>
+                        <div class="profile-avatar mb-3" id="photoContainer">
+                            @if ($user->profile_photo_path)
+                                <img src="{{ Storage::url($user->profile_photo_path) }}" 
+                                     alt="Foto Profil" 
+                                     class="rounded-circle" 
+                                     style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #007bff;">
+                            @else
+                                <div class="avatar-circle bg-primary text-white" style="width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            @endif
                         </div>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadPhotoModal">
+                            <i class="fas fa-camera"></i> {{ $user->profile_photo_path ? 'Ganti' : 'Upload' }} Foto
+                        </button>
+                        @if ($user->profile_photo_path)
+                        <form action="{{ route('profile.delete-photo') }}" method="POST" class="d-inline" style="display: inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Hapus foto profil?')">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
+                        </form>
+                        @endif
                     </div>
                     <div class="col-md-8">
                         <table class="table table-borderless">
@@ -136,5 +155,82 @@
         </div>
     </div>
 </div>
+
+<!-- Upload Photo Modal -->
+<div class="modal fade" id="uploadPhotoModal" tabindex="-1" aria-labelledby="uploadPhotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="uploadPhotoModalLabel">
+                    <i class="fas fa-camera"></i> {{ $user->profile_photo_path ? 'Ganti' : 'Upload' }} Foto Profil
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('profile.upload-photo') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="profile_photo" class="form-label">
+                            <i class="fas fa-image"></i> Pilih Foto
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="file" 
+                               class="form-control @error('profile_photo') is-invalid @enderror" 
+                               id="profile_photo" 
+                               name="profile_photo" 
+                               accept="image/*"
+                               required
+                               onchange="previewImage(event)">
+                        @error('profile_photo')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted d-block mt-2">
+                            Format: JPG, PNG, GIF | Ukuran maksimal: 2 MB
+                        </small>
+                    </div>
+
+                    <div class="mb-3 text-center" id="previewContainer" style="display: none;">
+                        <label class="form-label d-block mb-2">Pratinjau</label>
+                        <img id="previewImage" src="" alt="Preview" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb"></i> Tips:
+                        <ul class="mb-0 mt-2 small">
+                            <li>Gunakan foto yang jelas dan terlihat dengan baik</li>
+                            <li>Ukuran foto 1:1 (square) akan terlihat lebih baik</li>
+                            <li>Foto akan dipotong otomatis untuk menampilkan area wajah</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload"></i> {{ $user->profile_photo_path ? 'Ganti' : 'Upload' }} Foto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Image Preview -->
+<script>
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewImage = document.getElementById('previewImage');
+            const previewContainer = document.getElementById('previewContainer');
+            previewImage.src = e.target.result;
+            previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+</script>
 
 @endsection

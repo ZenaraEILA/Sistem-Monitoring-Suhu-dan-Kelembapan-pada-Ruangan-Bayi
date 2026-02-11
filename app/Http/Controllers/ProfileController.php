@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
 
 class ProfileController extends Controller
 {
@@ -76,5 +79,62 @@ class ProfileController extends Controller
 
         return redirect()->route('profile.show')
             ->with('success', 'Password berhasil diubah');
+    }
+
+    /**
+     * Upload profile photo
+     */
+    public function uploadPhoto(Request $request)
+    {
+        $validated = $request->validate([
+            'profile_photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ], [
+            'profile_photo.required' => 'Silakan pilih file foto',
+            'profile_photo.image' => 'File harus berupa gambar',
+            'profile_photo.mimes' => 'Format gambar harus JPEG, PNG, JPG, atau GIF',
+            'profile_photo.max' => 'Ukuran foto maksimal 2 MB',
+        ]);
+
+        $user = Auth::user();
+
+        // Delete old photo if exists
+        if ($user->profile_photo_path && Storage::disk('public')->exists($user->profile_photo_path)) {
+            Storage::disk('public')->delete($user->profile_photo_path);
+        }
+
+        // Store new photo
+        $file = $request->file('profile_photo');
+        $filename = 'profile-' . $user->id . '-' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('profile-photos', $filename, 'public');
+
+        // Update user with photo path
+        $user->update(['profile_photo_path' => $path]);
+
+        return redirect()->route('profile.show')
+            ->with('success', 'Foto profil berhasil diupload');
+    }
+
+    /**
+     * Delete profile photo
+     */
+    public function deletePhoto()
+    {
+        $user = Auth::user();
+
+        if ($user->profile_photo_path) {
+            // Delete file from storage
+            if (Storage::disk('public')->exists($user->profile_photo_path)) {
+                Storage::disk('public')->delete($user->profile_photo_path);
+            }
+
+            // Update user to remove photo path
+            $user->update(['profile_photo_path' => null]);
+
+            return redirect()->route('profile.show')
+                ->with('success', 'Foto profil berhasil dihapus');
+        }
+
+        return redirect()->route('profile.show')
+            ->with('warning', 'Tidak ada foto profil untuk dihapus');
     }
 }

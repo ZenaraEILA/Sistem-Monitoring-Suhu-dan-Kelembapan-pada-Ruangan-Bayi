@@ -39,6 +39,8 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/', [ProfileController::class, 'update'])->name('profile.update');
         Route::get('/password', [ProfileController::class, 'editPassword'])->name('profile.edit-password');
         Route::put('/password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
+        Route::post('/photo', [ProfileController::class, 'uploadPhoto'])->name('profile.upload-photo');
+        Route::delete('/photo', [ProfileController::class, 'deletePhoto'])->name('profile.delete-photo');
     });
 
     // Monitoring

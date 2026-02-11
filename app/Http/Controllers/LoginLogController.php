@@ -28,6 +28,45 @@ class LoginLogController extends Controller
 
         $loginLogs = $query->paginate(50);
 
-        return view('monitoring.login-logs', compact('loginLogs', 'startDate', 'endDate'));
+        // Calculate statistics
+        $totalLogin = $loginLogs->total();
+        $adminCount = LoginLog::with('user')
+            ->whereHas('user', function ($q) {
+                $q->where('role', 'admin');
+            });
+        
+        if ($startDate) {
+            $adminCount->where('login_time', '>=', Carbon::parse($startDate)->startOfDay());
+        }
+        if ($endDate) {
+            $adminCount->where('login_time', '<=', Carbon::parse($endDate)->endOfDay());
+        }
+        $adminCount = $adminCount->count();
+
+        $petugasCount = LoginLog::with('user')
+            ->whereHas('user', function ($q) {
+                $q->where('role', 'petugas');
+            });
+        
+        if ($startDate) {
+            $petugasCount->where('login_time', '>=', Carbon::parse($startDate)->startOfDay());
+        }
+        if ($endDate) {
+            $petugasCount->where('login_time', '<=', Carbon::parse($endDate)->endOfDay());
+        }
+        $petugasCount = $petugasCount->count();
+
+        $uniqueUsers = LoginLog::with('user')
+            ->distinct('user_id');
+        
+        if ($startDate) {
+            $uniqueUsers->where('login_time', '>=', Carbon::parse($startDate)->startOfDay());
+        }
+        if ($endDate) {
+            $uniqueUsers->where('login_time', '<=', Carbon::parse($endDate)->endOfDay());
+        }
+        $uniqueUsers = $uniqueUsers->pluck('user_id')->count();
+
+        return view('monitoring.login-logs', compact('loginLogs', 'startDate', 'endDate', 'totalLogin', 'adminCount', 'petugasCount', 'uniqueUsers'));
     }
 }

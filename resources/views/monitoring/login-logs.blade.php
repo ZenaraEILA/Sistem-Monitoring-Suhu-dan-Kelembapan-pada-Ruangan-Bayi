@@ -40,7 +40,7 @@
         <div class="card">
             <div class="card-body">
                 <h6 class="text-muted mb-1">Total Login</h6>
-                <h2 class="text-primary mb-0">{{ $loginLogs->total() }}</h2>
+                <h2 class="text-primary mb-0">{{ $totalLogin }}</h2>
             </div>
         </div>
     </div>
@@ -48,7 +48,7 @@
         <div class="card">
             <div class="card-body">
                 <h6 class="text-muted mb-1">Admin</h6>
-                <h2 class="text-success mb-0">{{ $loginLogs->items()->where('user.role', 'admin')->count() }}</h2>
+                <h2 class="text-success mb-0">{{ $adminCount }}</h2>
             </div>
         </div>
     </div>
@@ -56,7 +56,7 @@
         <div class="card">
             <div class="card-body">
                 <h6 class="text-muted mb-1">Petugas</h6>
-                <h2 class="text-info mb-0">{{ $loginLogs->items()->where('user.role', 'petugas')->count() }}</h2>
+                <h2 class="text-info mb-0">{{ $petugasCount }}</h2>
             </div>
         </div>
     </div>
@@ -64,7 +64,7 @@
         <div class="card">
             <div class="card-body">
                 <h6 class="text-muted mb-1">Pengguna Unik</h6>
-                <h2 class="text-warning mb-0">{{ $loginLogs->items()->unique('user_id')->count() }}</h2>
+                <h2 class="text-warning mb-0">{{ $uniqueUsers }}</h2>
             </div>
         </div>
     </div>

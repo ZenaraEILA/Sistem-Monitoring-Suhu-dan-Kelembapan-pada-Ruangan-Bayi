@@ -244,7 +244,7 @@
                     <a href="{{ route('monitoring.hourly-trend') }}" class="btn btn-outline-info">
                         <i class="fas fa-chart-line"></i> Tren Harian
                     </a>
-                    <a href="{{ route('report.index') }}" class="btn btn-outline-success">
+                    <a href="{{ route('reports.index') }}" class="btn btn-outline-success">
                         <i class="fas fa-download"></i> Export Laporan
                     </a>
                     @if(auth()->user()->role === 'admin')

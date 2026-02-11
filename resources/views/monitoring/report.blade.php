@@ -19,7 +19,7 @@
             </div>
             <div class="card-body">
                 <p class="text-muted">Download data monitoring untuk satu hari</p>
-                <form action="{{ route('report.export-daily') }}" method="post">
+                <form action="{{ route('reports.export-daily') }}" method="post">
                     @csrf
                     <div class="mb-3">
                         <label for="device_id_daily" class="form-label">Pilih Ruangan</label>
@@ -59,7 +59,7 @@
             </div>
             <div class="card-body">
                 <p class="text-muted">Download data monitoring untuk 7 hari</p>
-                <form action="{{ route('report.export-weekly') }}" method="post">
+                <form action="{{ route('reports.export-weekly') }}" method="post">
                     @csrf
                     <div class="mb-3">
                         <label for="device_id_weekly" class="form-label">Pilih Ruangan</label>
@@ -99,7 +99,7 @@
             </div>
             <div class="card-body">
                 <p class="text-muted">Download data monitoring untuk satu bulan</p>
-                <form action="{{ route('report.export-monthly') }}" method="post">
+                <form action="{{ route('reports.export-monthly') }}" method="post">
                     @csrf
                     <div class="mb-3">
                         <label for="device_id_monthly" class="form-label">Pilih Ruangan</label>

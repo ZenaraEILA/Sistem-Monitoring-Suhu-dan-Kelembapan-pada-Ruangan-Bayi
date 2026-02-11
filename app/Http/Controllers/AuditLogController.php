@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AuditLogController extends Controller
 {
@@ -12,7 +14,9 @@ class AuditLogController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize('isAdmin');
+        if (!Auth::user() || Auth::user()->role !== 'admin') {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
 
         $query = AuditLog::with('user');
 
@@ -49,7 +53,7 @@ class AuditLogController extends Controller
      */
     public function getUserLogs(Request $request)
     {
-        $userId = $request->input('user_id', auth()->id());
+        $userId = $request->input('user_id', Auth::id());
         $days = $request->input('days', 30);
 
         $startDate = now()->subDays($days);
@@ -117,7 +121,9 @@ class AuditLogController extends Controller
      */
     public function export(Request $request)
     {
-        $this->authorize('isAdmin');
+        if (!Auth::user() || Auth::user()->role !== 'admin') {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
 
         $query = AuditLog::with('user');
 

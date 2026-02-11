@@ -7,6 +7,7 @@ use App\Models\DailyChecklist;
 use App\Models\AuditLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ChecklistController extends Controller
 {
@@ -24,7 +25,7 @@ class ChecklistController extends Controller
         if (!$checklist) {
             $checklist = DailyChecklist::create([
                 'device_id' => $device->id,
-                'petugas_id' => auth()->id(),
+                'petugas_id' => Auth::id(),
                 'checklist_date' => $today,
                 'items' => [
                     'room_condition' => false,

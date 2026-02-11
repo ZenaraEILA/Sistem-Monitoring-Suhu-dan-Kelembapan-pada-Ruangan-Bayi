@@ -7,6 +7,8 @@ use App\Models\DoctorNote;
 use App\Models\AuditLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class DoctorNoteController extends Controller
 {
@@ -48,7 +50,7 @@ class DoctorNoteController extends Controller
             'category' => 'required|in:general,observation,treatment,equipment',
         ]);
 
-        $validated['created_by'] = auth()->id();
+        $validated['created_by'] = Auth::id();
 
         $note = DoctorNote::create($validated);
 
@@ -67,7 +69,9 @@ class DoctorNoteController extends Controller
      */
     public function update(DoctorNote $note, Request $request)
     {
-        $this->authorize('update', $note);
+        if (!Auth::user() || Auth::id() !== $note->created_by) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
 
         $validated = $request->validate([
             'content' => 'required|string|max:1000',
@@ -91,7 +95,9 @@ class DoctorNoteController extends Controller
      */
     public function destroy(DoctorNote $note)
     {
-        $this->authorize('delete', $note);
+        if (!Auth::user() || Auth::id() !== $note->created_by) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
 
         $noteId = $note->id;
         $note->delete();

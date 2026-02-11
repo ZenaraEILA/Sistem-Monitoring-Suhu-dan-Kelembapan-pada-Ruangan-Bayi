@@ -7,6 +7,7 @@ use App\Models\IncidentMarker;
 use App\Models\Monitoring;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class IncidentMarkerController extends Controller
 {
@@ -21,7 +22,7 @@ class IncidentMarkerController extends Controller
             'notes' => 'nullable|string|max:500',
         ]);
 
-        $validated['created_by'] = auth()->id();
+        $validated['created_by'] = Auth::id();
         $validated['marked_at'] = now();
 
         $marker = IncidentMarker::create($validated);
@@ -54,7 +55,9 @@ class IncidentMarkerController extends Controller
      */
     public function destroy(IncidentMarker $marker)
     {
-        $this->authorize('delete', $marker);
+        if (!Auth::user() || Auth::id() !== $marker->created_by) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
 
         $markerId = $marker->id;
         $marker->delete();

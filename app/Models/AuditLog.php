@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Auth;
 
 class AuditLog extends Model
 {
@@ -42,7 +43,7 @@ class AuditLog extends Model
     {
         $request = request();
         self::create([
-            'user_id' => auth()->id() ?? null,
+            'user_id' => Auth::id() ?? null,
             'action' => $action,
             'description' => $description,
             'model_name' => $modelName,

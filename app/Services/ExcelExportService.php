@@ -214,14 +214,42 @@ class ExcelExportData implements \Maatwebsite\Excel\Concerns\FromArray, \Maatweb
 
     public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet)
     {
-        $sheet->getStyle('A1:D1')->getFont()->setSize(14)->setBold(true);
-        $sheet->getColumnDimension('A')->setWidth(25);
-        $sheet->getColumnDimension('B')->setWidth(15);
-        $sheet->getColumnDimension('C')->setWidth(15);
-        $sheet->getColumnDimension('D')->setWidth(20);
-        $sheet->getColumnDimension('E')->setWidth(20);
-        $sheet->getColumnDimension('F')->setWidth(20);
-        $sheet->getColumnDimension('G')->setWidth(15);
+        // Title style
+        $sheet->getStyle('A1')->getFont()->setSize(14)->setBold(true);
+        
+        // Set column widths
+        $sheet->getColumnDimension('A')->setWidth(30);
+        $sheet->getColumnDimension('B')->setWidth(18);
+        $sheet->getColumnDimension('C')->setWidth(18);
+        $sheet->getColumnDimension('D')->setWidth(18);
+        $sheet->getColumnDimension('E')->setWidth(25);
+        $sheet->getColumnDimension('F')->setWidth(25);
+        $sheet->getColumnDimension('G')->setWidth(18);
+
+        // Apply formatting to numeric columns
+        $highestRow = $sheet->getHighestRow();
+        for ($row = 1; $row <= $highestRow; $row++) {
+            // Header styling for section titles
+            if ($sheet->getCell('A' . $row)->getValue() && 
+                in_array($sheet->getCell('A' . $row)->getValue(), [
+                    'RINGKASAN STATISTIK', 
+                    'DATA DETAIL MONITORING',
+                    'KEJADIAN PENTING',
+                    'CATATAN DOKTER'
+                ])) {
+                $sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(11);
+            }
+            
+            // Format numeric values in columns B and C
+            if ($row > 15 && $row < ($highestRow - 10)) {
+                if ($sheet->getCell('B' . $row)->getValue()) {
+                    $sheet->getCell('B' . $row)->getNumberFormat()->setFormatCode('0.00');
+                }
+                if ($sheet->getCell('C' . $row)->getValue()) {
+                    $sheet->getCell('C' . $row)->getNumberFormat()->setFormatCode('0.00');
+                }
+            }
+        }
 
         return [];
     }

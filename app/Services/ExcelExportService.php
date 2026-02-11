@@ -32,8 +32,10 @@ class ExcelExportService
             ->whereBetween('date', [$startDate, $endDate])
             ->get();
 
-        // Prepare incident markers
-        $incidents = IncidentMarker::where('device_id', $device->id)
+        // Prepare incident markers through monitoring relationship
+        $incidents = IncidentMarker::whereHas('monitoring', function ($query) use ($device) {
+            $query->where('device_id', $device->id);
+        })
             ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
 

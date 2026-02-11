@@ -29,8 +29,10 @@ class PdfExportService
             ->whereBetween('date', [$startDate, $endDate])
             ->get();
 
-        // Get incidents
-        $incidents = IncidentMarker::where('device_id', $device->id)
+        // Get incidents through monitoring relationship
+        $incidents = IncidentMarker::whereHas('monitoring', function ($query) use ($device) {
+            $query->where('device_id', $device->id);
+        })
             ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
 
@@ -71,7 +73,9 @@ class PdfExportService
         $avgResponseTime = $monitorings->whereNotNull('response_time_minutes')->avg('response_time_minutes');
 
         // Get alerts/incidents count
-        $incidentsCount = IncidentMarker::where('device_id', $device->id)
+        $incidentsCount = IncidentMarker::whereHas('monitoring', function ($query) use ($device) {
+            $query->where('device_id', $device->id);
+        })
             ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 

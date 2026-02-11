@@ -31,7 +31,7 @@ Sistem ini menggantikan pencatatan manual perawat yang sering tidak akurat dan m
 - ⚙️ **Manajemen Device** - Admin dapat mengatur device/sensor ESP yang terdaftar  
 - 🔗 **API REST** - Endpoint untuk menerima data real-time dari ESP8266/ESP32  
 - 📱 **Responsive Design** - Bekerja sempurna di desktop, tablet, dan mobile  
-- 📊 **Export Laporan** - Download data monitoring dalam format CSV (Daily/Weekly/Monthly)
+- 📊 **Export Laporan Komprehensif** - Download laporan PDF/Excel dengan grafik, statistik & detail data (Daily/Weekly/Monthly)
 
 ### 🆕 10 Fitur Lanjutan (Advanced Clinical Support)
 
@@ -240,13 +240,14 @@ GET    /audit-logs/summary                    Activity summary
 GET    /audit-logs/export                     Export CSV
 ```
 
-### Print & Export (6+ routes)
+### Print & Export (7+ routes)
 ```
 GET    /print/today/{device}                  Print HTML
 GET    /print/today/{device}/pdf              Download PDF
-POST   /report/export-daily                   Export daily
-POST   /report/export-weekly                  Export weekly
-POST   /report/export-monthly                 Export monthly
+GET    /reports                               Export form page
+POST   /reports/export-daily                  Export daily (PDF/Excel)
+POST   /reports/export-weekly                 Export weekly (PDF/Excel)
+POST   /reports/export-monthly                Export monthly (PDF/Excel)
 ```
 
 **Total: 50+ endpoints dengan proper authorization & validation**

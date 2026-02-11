@@ -13,6 +13,7 @@ use App\Http\Controllers\DoctorNoteController;
 use App\Http\Controllers\AdvancedFeatureController;
 use App\Http\Controllers\PrintController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\ProfileController;
 
 /**
  * Auth Routes
@@ -30,6 +31,15 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+
+    // Profile Management
+    Route::prefix('profile')->group(function () {
+        Route::get('/', [ProfileController::class, 'show'])->name('profile.show');
+        Route::get('/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/', [ProfileController::class, 'update'])->name('profile.update');
+        Route::get('/password', [ProfileController::class, 'editPassword'])->name('profile.edit-password');
+        Route::put('/password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
+    });
 
     // Monitoring
     Route::prefix('monitoring')->group(function () {

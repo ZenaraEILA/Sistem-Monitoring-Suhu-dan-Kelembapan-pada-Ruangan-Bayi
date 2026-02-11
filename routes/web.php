@@ -53,11 +53,11 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Reports
-    Route::prefix('report')->group(function () {
-        Route::get('/', [ReportController::class, 'index'])->name('report.index');
-        Route::post('/export-daily', [ReportController::class, 'exportDaily'])->name('report.export-daily');
-        Route::post('/export-weekly', [ReportController::class, 'exportWeekly'])->name('report.export-weekly');
-        Route::post('/export-monthly', [ReportController::class, 'exportMonthly'])->name('report.export-monthly');
+    Route::prefix('reports')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('reports.index');
+        Route::post('/export-daily', [ReportController::class, 'exportDaily'])->name('reports.export-daily');
+        Route::post('/export-weekly', [ReportController::class, 'exportWeekly'])->name('reports.export-weekly');
+        Route::post('/export-monthly', [ReportController::class, 'exportMonthly'])->name('reports.export-monthly');
     });
 
     // Login Logs (View only for auditing)

@@ -103,6 +103,25 @@
     </div>
 </div>
 
+<!-- Export Laporan Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm bg-light">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <h6 class="mb-0 fw-bold"><i class="fas fa-download"></i> Export Laporan Monitoring</h6>
+                        <small class="text-muted">Unduh laporan dalam bentuk PDF atau Excel untuk dokumentasi medis</small>
+                    </div>
+                    <a href="{{ route('reports.index') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-file-export"></i> Manage Export »
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Devices Monitoring -->
 <div class="row">
     @forelse($devices as $device)

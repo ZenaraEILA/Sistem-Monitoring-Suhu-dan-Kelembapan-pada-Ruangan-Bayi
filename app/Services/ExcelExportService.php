@@ -9,10 +9,11 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Style\Font;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class ExcelExportService
 {
@@ -98,7 +99,7 @@ class ExcelExportService
 /**
  * Excel export class for handling spreadsheet generation
  */
-class ExcelExportData implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings, \Maatwebsite\Excel\Concerns\WithStyles
+class ExcelExportData implements FromArray, WithStyles
 {
     private $device;
     private $summary;
@@ -207,12 +208,7 @@ class ExcelExportData implements \Maatwebsite\Excel\Concerns\FromArray, \Maatweb
         return $data;
     }
 
-    public function headings(): array
-    {
-        return [];
-    }
-
-    public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet)
+    public function styles(Worksheet $sheet)
     {
         // Title style
         $sheet->getStyle('A1')->getFont()->setSize(14)->setBold(true);
@@ -225,31 +221,6 @@ class ExcelExportData implements \Maatwebsite\Excel\Concerns\FromArray, \Maatweb
         $sheet->getColumnDimension('E')->setWidth(25);
         $sheet->getColumnDimension('F')->setWidth(25);
         $sheet->getColumnDimension('G')->setWidth(18);
-
-        // Apply formatting to numeric columns
-        $highestRow = $sheet->getHighestRow();
-        for ($row = 1; $row <= $highestRow; $row++) {
-            // Header styling for section titles
-            if ($sheet->getCell('A' . $row)->getValue() && 
-                in_array($sheet->getCell('A' . $row)->getValue(), [
-                    'RINGKASAN STATISTIK', 
-                    'DATA DETAIL MONITORING',
-                    'KEJADIAN PENTING',
-                    'CATATAN DOKTER'
-                ])) {
-                $sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(11);
-            }
-            
-            // Format numeric values in columns B and C
-            if ($row > 15 && $row < ($highestRow - 10)) {
-                if ($sheet->getCell('B' . $row)->getValue()) {
-                    $sheet->getCell('B' . $row)->getNumberFormat()->setFormatCode('0.00');
-                }
-                if ($sheet->getCell('C' . $row)->getValue()) {
-                    $sheet->getCell('C' . $row)->getNumberFormat()->setFormatCode('0.00');
-                }
-            }
-        }
 
         return [];
     }

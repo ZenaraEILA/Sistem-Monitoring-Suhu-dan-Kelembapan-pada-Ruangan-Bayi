@@ -1,4 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.main')
+
+@section('title', 'Export Laporan - Sistem Monitoring Suhu Bayi')
 
 @section('content')
 <div class="container-fluid py-4">

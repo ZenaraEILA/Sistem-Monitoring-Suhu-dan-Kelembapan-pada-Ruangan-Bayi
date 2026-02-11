@@ -352,8 +352,8 @@
 
         @foreach($doctorNotes as $note)
         <div class="note-item">
-            <strong>{{ $note->date->format('d/m/Y') }}</strong>
-            <p style="margin-top: 5px; font-size: 12px;">{{ $note->notes }}</p>
+            <strong>{{ $note->note_date->format('d/m/Y') }}</strong>
+            <p style="margin-top: 5px; font-size: 12px;">{{ $note->content }}</p>
         </div>
         @endforeach
     </div>

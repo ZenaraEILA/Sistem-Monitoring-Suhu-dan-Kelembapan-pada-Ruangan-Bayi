@@ -26,7 +26,7 @@ class PdfExportService
 
         // Get doctor notes
         $doctorNotes = DoctorNote::where('device_id', $device->id)
-            ->whereBetween('date', [$startDate, $endDate])
+            ->whereBetween('note_date', [$startDate, $endDate])
             ->get();
 
         // Get incidents through monitoring relationship

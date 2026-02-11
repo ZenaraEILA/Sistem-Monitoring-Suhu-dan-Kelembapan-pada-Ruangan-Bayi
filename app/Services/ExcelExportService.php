@@ -29,7 +29,7 @@ class ExcelExportService
 
         // Prepare doctor notes
         $doctorNotes = DoctorNote::where('device_id', $device->id)
-            ->whereBetween('date', [$startDate, $endDate])
+            ->whereBetween('note_date', [$startDate, $endDate])
             ->get();
 
         // Prepare incident markers through monitoring relationship
@@ -193,8 +193,8 @@ class ExcelExportData implements \Maatwebsite\Excel\Concerns\FromArray, \Maatweb
 
             foreach ($this->doctorNotes as $note) {
                 $data[] = [
-                    $note->date->format('d/m/Y'),
-                    $note->notes,
+                    $note->note_date->format('d/m/Y'),
+                    $note->content,
                 ];
             }
 

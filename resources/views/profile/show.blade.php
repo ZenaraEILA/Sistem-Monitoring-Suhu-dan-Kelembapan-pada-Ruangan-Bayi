@@ -178,14 +178,16 @@
                                class="form-control @error('profile_photo') is-invalid @enderror" 
                                id="profile_photo" 
                                name="profile_photo" 
-                               accept="image/*"
+                               accept="image/jpeg,image/png,image/gif,image/webp,image/bmp,image/svg+xml,image/tiff,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg,.tiff"
                                required
                                onchange="previewImage(event)">
                         @error('profile_photo')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                         <small class="text-muted d-block mt-2">
-                            Format: JPG, PNG, GIF | Ukuran maksimal: 2 MB
+                            <strong>Format yang di-support:</strong> JPG, JPEG, PNG, GIF, WebP, BMP, SVG, TIFF<br>
+                            <strong>Ukuran maksimal:</strong> 5 MB<br>
+                            <strong>Rekomendasi:</strong> Gunakan foto 1:1 (square) untuk hasil terbaik
                         </small>
                     </div>
 
@@ -199,7 +201,9 @@
                         <ul class="mb-0 mt-2 small">
                             <li>Gunakan foto yang jelas dan terlihat dengan baik</li>
                             <li>Ukuran foto 1:1 (square) akan terlihat lebih baik</li>
-                            <li>Foto akan dipotong otomatis untuk menampilkan area wajah</li>
+                            <li>Format yang di-support: JPG, PNG, GIF, WebP, BMP, SVG, TIFF</li>
+                            <li>Ukuran file maksimal 5 MB</li>
+                            <li>WebP dan TIFF akan otomatis dikonversi untuk kompatibilitas maksimal</li>
                         </ul>
                     </div>
                 </div>

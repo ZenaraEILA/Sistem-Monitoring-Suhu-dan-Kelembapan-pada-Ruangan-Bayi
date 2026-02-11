@@ -87,12 +87,12 @@ class ProfileController extends Controller
     public function uploadPhoto(Request $request)
     {
         $validated = $request->validate([
-            'profile_photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'profile_photo' => 'required|image|mimes:jpeg,png,jpg,gif,webp,bmp,svg,tiff|max:5120',
         ], [
             'profile_photo.required' => 'Silakan pilih file foto',
             'profile_photo.image' => 'File harus berupa gambar',
-            'profile_photo.mimes' => 'Format gambar harus JPEG, PNG, JPG, atau GIF',
-            'profile_photo.max' => 'Ukuran foto maksimal 2 MB',
+            'profile_photo.mimes' => 'Format gambar harus JPEG, PNG, JPG, GIF, WebP, BMP, SVG, atau TIFF',
+            'profile_photo.max' => 'Ukuran foto maksimal 5 MB',
         ]);
 
         $user = Auth::user();

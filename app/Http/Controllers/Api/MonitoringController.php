@@ -71,4 +71,49 @@ class MonitoringController extends Controller
 
         return response()->json(['data' => $monitoring], 200);
     }
-}
+
+    /**
+     * Get all latest monitoring data for realtime dashboard
+     * Includes ESP connection status (based on last ping)
+     */
+    public function getRealtimeDashboard()
+    {
+        $devices = Device::with(['monitorings' => function ($query) {
+            $query->latest('recorded_at')->limit(1);
+        }])->get();
+
+        $data = [];
+        foreach ($devices as $device) {
+            $latestMonitoring = $device->monitorings->first();
+            
+            // Check connection status: connected jika last update < 2 menit
+            $isConnected = false;
+            $lastUpdateTime = null;
+            
+            if ($latestMonitoring) {
+                $lastUpdateTime = $latestMonitoring->recorded_at;
+                $minutesDifference = now()->diffInMinutes($lastUpdateTime);
+                $isConnected = $minutesDifference < 2; // Connected jika < 2 menit
+            }
+
+            $data[] = [
+                'id' => $device->id,
+                'device_id' => $device->device_id,
+                'device_name' => $device->device_name,
+                'location' => $device->location,
+                'is_connected' => $isConnected,
+                'connection_status' => $isConnected ? 'TERHUBUNG' : 'TIDAK TERHUBUNG',
+                'last_update' => $lastUpdateTime ? $lastUpdateTime->toIso8601String() : null,
+                'minutes_ago' => $lastUpdateTime ? now()->diffInMinutes($lastUpdateTime) : null,
+                'temperature' => $latestMonitoring ? $latestMonitoring->temperature : null,
+                'humidity' => $latestMonitoring ? $latestMonitoring->humidity : null,
+                'status' => $latestMonitoring ? $latestMonitoring->status : null,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'timestamp' => now()->toIso8601String(),
+            'data' => $data,
+        ], 200);
+    }

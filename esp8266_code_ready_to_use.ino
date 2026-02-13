@@ -8,16 +8,16 @@
 DHT dht(DHTPIN, DHTTYPE);
 
 // ============ KONFIGURASI WIFI ============
-const char* ssid = "NAMA_WIFI_ANDA";           // ← EDIT: Ganti dengan SSID WiFi Anda
-const char* password = "PASSWORD_WIFI_ANDA";   // ← EDIT: Ganti dengan password WiFi Anda
+const char* ssid = "monitoring_suhu";           // ← EDIT: Ganti dengan SSID WiFi Anda
+const char* password = "11111111";   // ← EDIT: Ganti dengan password WiFi Anda
 
 // ============ KONFIGURASI API LARAVEL ============
-const char* serverIP = "192.168.1.X";  // ← EDIT: Ganti dengan IP komputer Anda (cek: ipconfig di CMD)
+const char* serverIP = "192.168.2.102";  // ← EDIT: Ganti dengan IP komputer Anda (cek: ipconfig di CMD)
 const int serverPort = 8000;           // Port Laravel (default: 8000)
 const char* apiEndpoint = "/api/monitoring/store"; // Endpoint API Laravel
 
 // ============ KONFIGURASI DEVICE ============
-const int deviceId = 1;                // ID device sesuai database Laravel
+const int deviceId = 2;                // ID device sesuai database Laravel
 const int sendInterval = 10000;        // Kirim data setiap 10 detik (dalam milidetik)
 
 // ============ DEKLARASI VARIABEL ============

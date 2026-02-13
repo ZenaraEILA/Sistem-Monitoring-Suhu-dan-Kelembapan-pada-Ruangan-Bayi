@@ -3,9 +3,41 @@
 @section('title', 'Dashboard - Sistem Monitoring Suhu Bayi')
 
 @section('content')
+
+<!-- Realtime Connection Status Alert -->
+<div id="connectionStatusAlert" class="alert alert-info alert-dismissible fade show d-flex justify-content-between align-items-center" role="alert" style="display: none;">
+    <div>
+        <span id="connectionStatusText">
+            <i class="fas fa-wifi me-2"></i>
+            <span id="connectionStatusMessage">Checking connection...</span>
+        </span>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<!-- ESP8266 Connected Notification -->
+<div id="espConnectedAlert" class="alert alert-success alert-dismissible fade show d-none" role="alert">
+    <i class="fas fa-check-circle me-2"></i>
+    <span id="espConnectedMessage">ESP8266 TERHUBUNG - Data diterima</span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<!-- ESP8266 Disconnected Notification -->
+<div id="espDisconnectedAlert" class="alert alert-danger alert-dismissible fade show d-none" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    <span id="espDisconnectedMessage">ESP8266 TIDAK TERHUBUNG - Periksa koneksi WiFi</span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
 <div class="row mb-4">
     <div class="col-12">
-        <h1 class="h3 mb-0"><i class="fas fa-chart-line"></i> Dashboard Monitoring</h1>
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="h3 mb-0"><i class="fas fa-chart-line"></i> Dashboard Monitoring</h1>
+            <small class="text-muted">
+                <i class="fas fa-sync-alt" id="refreshSpinner"></i> 
+                Update terakhir: <span id="lastUpdateTime">sekarang</span>
+            </small>
+        </div>
     </div>
 </div>
 
@@ -123,26 +155,33 @@
 </div>
 
 <!-- Devices Monitoring -->
-<div class="row">
+<div class="row" id="devicesContainer">
     @forelse($devices as $device)
-    <div class="col-md-6 col-lg-4 mb-4">
+    <div class="col-md-6 col-lg-4 mb-4 device-monitor" data-device-id="{{ $device->id }}">
         <div class="device-card card h-100">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">{{ $device->device_name }}</h5>
-                    @if($device->monitorings->count() > 0)
-                        @php
-                            $monitoring = $device->monitorings->first();
-                            $statusBadge = $monitoring->status === 'Aman' ? 'status-safe' : 'status-unsafe';
-                            $statusText = $monitoring->status;
-                        @endphp
-                        <span class="badge {{ $monitoring->status === 'Aman' ? 'badge-aman' : 'badge-tidak-aman' }}">
-                            {{ $statusText }}
-                        </span>
-                    @endif
+                    <span class="badge device-status-badge {{ $device->monitorings->count() > 0 && $device->monitorings->first()->status === 'Aman' ? 'badge-aman' : 'badge-tidak-aman' }}">
+                        <span class="device-status-text">{{ $device->monitorings->count() > 0 ? $device->monitorings->first()->status : 'No Data' }}</span>
+                    </span>
                 </div>
                 <small class="text-white-50"><i class="fas fa-map-marker-alt"></i> {{ $device->location }}</small>
             </div>
+
+            <!-- Connection Status Indicator -->
+            <div class="card-header bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-wifi device-connection-icon" style="color: #28a745;"></i>
+                        <span class="device-connection-status">TERHUBUNG</span>
+                    </small>
+                    <small class="text-muted device-last-update">
+                        sekarang
+                    </small>
+                </div>
+            </div>
+
             <div class="card-body">
                 @if($device->monitorings->count() > 0)
                     @php
@@ -151,15 +190,15 @@
                     <div class="row text-center mb-3">
                         <div class="col-6">
                             <small class="text-muted d-block">Suhu</small>
-                            <div class="temp-display {{ $monitoring->temperature < 15 || $monitoring->temperature > 30 ? 'text-danger' : 'text-success' }}">
-                                {{ number_format($monitoring->temperature, 1) }}°C
+                            <div class="temp-display device-temperature {{ $monitoring->temperature < 15 || $monitoring->temperature > 30 ? 'text-danger' : 'text-success' }}">
+                                <span class="device-temp-value">{{ number_format($monitoring->temperature, 1) }}</span>°C
                             </div>
                             <small class="text-success">✓ Normal: 15-30°C</small>
                         </div>
                         <div class="col-6">
                             <small class="text-muted d-block">Kelembapan</small>
-                            <div class="humidity-display {{ $monitoring->humidity < 35 || $monitoring->humidity > 60 ? 'text-danger' : 'text-success' }}">
-                                {{ number_format($monitoring->humidity, 1) }}%
+                            <div class="humidity-display device-humidity {{ $monitoring->humidity < 35 || $monitoring->humidity > 60 ? 'text-danger' : 'text-success' }}">
+                                <span class="device-humidity-value">{{ number_format($monitoring->humidity, 1) }}</span>%
                             </div>
                             <small class="text-success">✓ Normal: 35-60%</small>
                         </div>
@@ -205,7 +244,7 @@
                     @endif
 
                     <hr>
-                    <small class="text-muted">
+                    <small class="text-muted device-recorded-time">
                         <i class="fas fa-clock"></i> 
                         Terakhir diperbarui: {{ $monitoring->recorded_at->diffForHumans() }}
                     </small>
@@ -346,4 +385,226 @@
         border-radius: 0.25rem;
     }
 </style>
+
+<!-- Realtime Dashboard JavaScript -->
+<script>
+// Realtime dashboard polling for ESP8266 connection status & data updates
+const POLLING_INTERVAL = 10000; // 10 seconds
+let lastConnectionStates = {}; // Track previous connection states
+let connectionNotificationShown = {}; // Track which devices have shown notifications
+
+// Start polling on page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Dashboard realtime monitoring started');
+    fetchRealtimeData(); // Fetch immediately
+    setInterval(fetchRealtimeData, POLLING_INTERVAL); // Then poll every 10 seconds
+});
+
+// Fetch realtime data from API
+function fetchRealtimeData() {
+    fetch('/api/monitoring/dashboard/realtime')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateRealtimeDashboard(data.data);
+                updateLastUpdateTime(data.timestamp);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching realtime data:', error);
+        });
+}
+
+// Update dashboard with realtime data
+function updateRealtimeDashboard(devicesData) {
+    devicesData.forEach(device => {
+        const deviceCard = document.querySelector(`[data-device-id="${device.id}"]`);
+        
+        if (!deviceCard) {
+            console.warn(`Device card not found for ID: ${device.id}`);
+            return;
+        }
+
+        // Update temperature & humidity
+        if (device.temperature !== null) {
+            const tempElement = deviceCard.querySelector('.device-temp-value');
+            const humidityElement = deviceCard.querySelector('.device-humidity-value');
+            
+            if (tempElement) {
+                tempElement.textContent = device.temperature.toFixed(1);
+                // Update color based on safe range
+                const tempDisplay = deviceCard.querySelector('.device-temperature');
+                if (device.temperature < 15 || device.temperature > 30) {
+                    tempDisplay.classList.remove('text-success');
+                    tempDisplay.classList.add('text-danger');
+                } else {
+                    tempDisplay.classList.remove('text-danger');
+                    tempDisplay.classList.add('text-success');
+                }
+            }
+            
+            if (humidityElement) {
+                humidityElement.textContent = device.humidity.toFixed(1);
+                // Update color based on safe range
+                const humidityDisplay = deviceCard.querySelector('.device-humidity');
+                if (device.humidity < 35 || device.humidity > 60) {
+                    humidityDisplay.classList.remove('text-success');
+                    humidityDisplay.classList.add('text-danger');
+                } else {
+                    humidityDisplay.classList.remove('text-danger');
+                    humidityDisplay.classList.add('text-success');
+                }
+            }
+        }
+
+        // Update connection status
+        const connectionIcon = deviceCard.querySelector('.device-connection-icon');
+        const connectionStatus = deviceCard.querySelector('.device-connection-status');
+        const lastUpdateElement = deviceCard.querySelector('.device-last-update');
+        
+        if (connectionIcon && connectionStatus) {
+            const wasConnected = lastConnectionStates[device.id] !== false;
+            const isNowConnected = device.is_connected;
+            
+            if (isNowConnected) {
+                connectionIcon.style.color = '#28a745'; // Green
+                connectionStatus.textContent = 'TERHUBUNG';
+                connectionIcon.className = 'fas fa-wifi device-connection-icon';
+                
+                // Show connected notification only if status changed
+                if (!wasConnected || !connectionNotificationShown[device.id]) {
+                    showConnectedNotification(device.device_name);
+                    connectionNotificationShown[device.id] = true;
+                }
+            } else {
+                connectionIcon.style.color = '#dc3545'; // Red
+                connectionStatus.textContent = 'TIDAK TERHUBUNG';
+                connectionIcon.className = 'fas fa-wifi-off device-connection-icon';
+                
+                // Show disconnected notification only if status changed
+                if (wasConnected || !connectionNotificationShown[device.id]) {
+                    showDisconnectedNotification(device.device_name);
+                    connectionNotificationShown[device.id] = true;
+                }
+            }
+            
+            lastConnectionStates[device.id] = isNowConnected;
+        }
+
+        // Update last update time
+        if (lastUpdateElement && device.minutes_ago !== null) {
+            let timeText = '';
+            if (device.minutes_ago === 0) {
+                timeText = 'sekarang';
+            } else if (device.minutes_ago === 1) {
+                timeText = '1 menit lalu';
+            } else if (device.minutes_ago < 60) {
+                timeText = `${device.minutes_ago} menit lalu`;
+            } else {
+                const hours = Math.floor(device.minutes_ago / 60);
+                timeText = hours === 1 ? '1 jam lalu' : `${hours} jam lalu`;
+            }
+            lastUpdateElement.textContent = timeText;
+        }
+
+        // Update status badge
+        const statusBadge = deviceCard.querySelector('.device-status-badge');
+        const statusText = deviceCard.querySelector('.device-status-text');
+        if (statusBadge && statusText && device.status) {
+            statusText.textContent = device.status;
+            if (device.status === 'Aman') {
+                statusBadge.classList.remove('badge-tidak-aman');
+                statusBadge.classList.add('badge-aman');
+            } else {
+                statusBadge.classList.remove('badge-aman');
+                statusBadge.classList.add('badge-tidak-aman');
+            }
+        }
+
+        // Update recorded time
+        const recordedTime = deviceCard.querySelector('.device-recorded-time');
+        if (recordedTime && device.last_update) {
+            const lastUpdate = new Date(device.last_update);
+            recordedTime.textContent = `⏰ Terakhir diperbarui: ${getRelativeTime(lastUpdate)}`;
+        }
+    });
+}
+
+// Show ESP8266 connected notification
+function showConnectedNotification(deviceName) {
+    const alertEl = document.getElementById('espConnectedAlert');
+    const messageEl = document.getElementById('espConnectedMessage');
+    
+    messageEl.textContent = `✓ ESP8266 "${deviceName}" TERHUBUNG - Data diterima`;
+    alertEl.classList.remove('d-none');
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        alertEl.classList.add('d-none');
+    }, 5000);
+}
+
+// Show ESP8266 disconnected notification
+function showDisconnectedNotification(deviceName) {
+    const alertEl = document.getElementById('espDisconnectedAlert');
+    const messageEl = document.getElementById('espDisconnectedMessage');
+    
+    messageEl.textContent = `⚠️ ESP8266 "${deviceName}" TIDAK TERHUBUNG - Periksa koneksi WiFi`;
+    alertEl.classList.remove('d-none');
+    
+    // Do NOT auto-hide - user should dismiss manually
+}
+
+// Update the global "last updated" time
+function updateLastUpdateTime(timestamp) {
+    const element = document.getElementById('lastUpdateTime');
+    if (element) {
+        const time = new Date(timestamp);
+        element.textContent = getRelativeTime(time);
+    }
+}
+
+// Get relative time format (e.g., "2 menit lalu")
+function getRelativeTime(date) {
+    const now = new Date();
+    const diffMs = now - new Date(date);
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins === 0) return 'sekarang';
+    if (diffMins === 1) return '1 menit lalu';
+    if (diffMins < 60) return `${diffMins} menit lalu`;
+    if (diffHours === 1) return '1 jam lalu';
+    if (diffHours < 24) return `${diffHours} jam lalu`;
+    if (diffDays === 1) return 'kemarin';
+    return `${diffDays} hari lalu`;
+}
+
+// Add rotation animation to refresh spinner during polling
+const originalFetch = window.fetch;
+window.fetch = function(...args) {
+    const spinner = document.getElementById('refreshSpinner');
+    if (spinner) {
+        spinner.style.animation = 'spin 1s linear infinite';
+    }
+    
+    return originalFetch.apply(this, args).then(response => {
+        if (spinner) {
+            spinner.style.animation = 'none';
+        }
+        return response;
+    });
+};
+
+// Add CSS for spinner animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
+</script>
 @endsection

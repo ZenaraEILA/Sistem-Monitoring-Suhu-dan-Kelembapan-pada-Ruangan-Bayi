@@ -23,6 +23,15 @@ Route::middleware('api')->prefix('monitoring')->group(function () {
     Route::post('/store', [MonitoringController::class, 'store']); // Alias untuk ESP8266
 
     /**
+     * Get all latest monitoring data for realtime dashboard
+     * Includes ESP connection status (based on last ping)
+     * 
+     * GET /api/monitoring/dashboard/realtime
+     * HARUS SEBELUM /{deviceId} agar tidak ter-catch parameter routing
+     */
+    Route::get('/dashboard/realtime', [MonitoringController::class, 'getRealtimeDashboard']);
+
+    /**
      * Get latest monitoring data for a device
      * 
      * GET /api/monitoring/{deviceId}

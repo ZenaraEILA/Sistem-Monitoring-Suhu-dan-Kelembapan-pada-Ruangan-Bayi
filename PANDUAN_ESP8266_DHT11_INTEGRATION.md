@@ -148,8 +148,12 @@ const int serverPort = 8000;           // Port Laravel (default: 8000)
 const char* apiEndpoint = "/api/monitoring/store"; // Endpoint API Laravel
 
 // ============ KONFIGURASI DEVICE ============
-const int deviceId = 1;                // ID device di database Laravel
+const int deviceId = 1;                // ID device di database Laravel (HARUS INTEGER: 1, 2, 3, etc - BUKAN STRING!)
 const int sendInterval = 10000;        // Kirim data setiap 10 detik (dalam milidetik)
+
+// ⚠️  PENTING: deviceId HARUS berupa angka (1, 2, 3, dst)
+//     SALAH:  const int deviceId = "DEVICE_SC0V9SZF6A";  ❌
+//     BENAR:  const int deviceId = 1;                     ✅
 
 // ============ DEKLARASI VARIABEL ============
 unsigned long lastSendTime = 0;
@@ -506,10 +510,16 @@ Solusi: Cek format JSON, pastikan semua field ada: device_id, temperature, humid
 
 ### **Cara 2: Menggunakan Command Line**
 
-Buka Command Prompt:
-```bash
+**Menggunakan PowerShell:**
+```powershell
 cd c:\xampp\mysql\bin
-mysql -u root -p monitoring_suhu_bayi -e "SELECT id, device_id, temperature, humidity, status, recorded_at FROM monitorings ORDER BY id DESC LIMIT 10;"
+.\mysql -u root monitoring_suhu_bayi -e "SELECT id, device_id, temperature, humidity, status, recorded_at FROM monitorings ORDER BY id DESC LIMIT 10;"
+```
+
+**Atau menggunakan CMD (Command Prompt):**
+```cmd
+cd c:\xampp\mysql\bin
+mysql -u root monitoring_suhu_bayi -e "SELECT id, device_id, temperature, humidity, status, recorded_at FROM monitorings ORDER BY id DESC LIMIT 10;"
 ```
 
 Tekan Enter (tidak ada password, langsung tekan Enter saja)
@@ -533,6 +543,40 @@ php artisan tinker
 ---
 
 ## 🔍 TROUBLESHOOTING
+
+### **Problem 0: ⚠️ Compilation Error - "was not declared in this scope"**
+
+**Error Message:**
+```
+error: 'DEVICE_SC0V9SZF6A_1770968554' was not declared in this scope
+   20 | const int deviceId = DEVICE_SC0V9SZF6A_1770968554
+      |                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+exit status 1
+```
+
+**Penyebab:** 
+`deviceId` harus berupa **angka integer (1, 2, 3, dst)**, BUKAN string/teks!
+
+**Solusi - GANTI INI:**
+```cpp
+❌ SALAH (Jangan pakai ini):
+const int deviceId = DEVICE_SC0V9SZF6A_1770968554;
+const int deviceId = "device123";
+const char* deviceId = "DEVICE_SC0V9SZF6A";
+
+✅ BENAR (Gunakan ini):
+const int deviceId = 1;        // ID dari database
+```
+
+**Penjelasan:**
+- Tipe `int` hanya menerima angka, bukan text
+- Sesuaikan angka dengan `id` di tabel `devices`:
+  ```bash
+  mysql -u root -e "SELECT id FROM devices LIMIT 5;" monitoring_suhu_bayi
+  ```
+- Hasil: ambil salah satu angka (biasanya 1 untuk device pertama)
+
+---
 
 ### **Problem 1: ESP8266 tidak terhubung ke WiFi**
 

@@ -9,17 +9,18 @@ Route::middleware('api')->prefix('monitoring')->group(function () {
     /**
      * API endpoint untuk menerima data dari ESP8266/ESP32
      * 
-     * POST /api/monitoring
+     * POST /api/monitoring atau POST /api/monitoring/store
      * Content-Type: application/json
      * 
      * Request body:
      * {
-     *   "device_id": "DEVICE_XXXXX_1234567890",
+     *   "device_id": 1,
      *   "temperature": 26.5,
      *   "humidity": 55.2
      * }
      */
     Route::post('/', [MonitoringController::class, 'store']);
+    Route::post('/store', [MonitoringController::class, 'store']); // Alias untuk ESP8266
 
     /**
      * Get latest monitoring data for a device

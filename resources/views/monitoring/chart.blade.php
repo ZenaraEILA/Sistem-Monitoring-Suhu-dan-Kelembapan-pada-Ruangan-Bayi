@@ -66,7 +66,23 @@
         <h5 class="mb-0"><i class="fas fa-chart-line"></i> Grafik Suhu & Kelembapan</h5>
     </div>
     <div class="card-body">
-        <div id="mainChart"></div>
+        @if(empty($chartData['temperatures']) || count($chartData['temperatures']) === 0)
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i> <strong>Data Tidak Ditemukan</strong><br>
+                Tidak ada data monitoring untuk device ini dalam periode yang dipilih. 
+                Pastikan:
+                <ul class="mb-0 mt-2">
+                    <li>Device sudah terhubung dengan baik</li>
+                    <li>Data telah dikirim dari ESP8266</li>
+                    <li>Rentang waktu sudah sesuai</li>
+                </ul>
+            </div>
+            <div class="text-center py-5">
+                <p class="text-muted">Menunggu data dari sensor...</p>
+            </div>
+        @else
+            <div id="mainChart"></div>
+        @endif
     </div>
 </div>
 
@@ -183,64 +199,69 @@
 <script>
     const chartData = @json($chartData);
     
-    // Prepare data with timestamps
-    const dataPoints = chartData.dates.map((date, index) => ({
-        x: chartData.timestamps[index],
-        temp: chartData.temperatures[index],
-        humidity: chartData.humidities[index],
-        status: chartData.statuses[index],
-        time: date
-    })).sort((a, b) => a.x - b.x);
-
-    // Calculate Statistics
-    function calculateStats(data) {
-        if (data.length === 0) return { avg: 0, max: 0, min: 0 };
-        const avg = (data.reduce((a, b) => a + b, 0) / data.length).toFixed(2);
-        const max = Math.max(...data).toFixed(2);
-        const min = Math.min(...data).toFixed(2);
-        return { avg, max, min };
-    }
-
-    const tempStats = calculateStats(chartData.temperatures);
-    const humStats = calculateStats(chartData.humidities);
-
-    // Update stats display
-    document.getElementById('tempAvg').textContent = tempStats.avg + '°C';
-    document.getElementById('tempMax').textContent = tempStats.max + '°C';
-    document.getElementById('tempMin').textContent = tempStats.min + '°C';
-    document.getElementById('humAvg').textContent = humStats.avg + '%';
-    document.getElementById('humMax').textContent = humStats.max + '%';
-    document.getElementById('humMin').textContent = humStats.min + '%';
-
-    // Check status
-    const isTempSafe = tempStats.avg >= 15 && tempStats.avg <= 30;
-    const isHumSafe = humStats.avg >= 35 && humStats.avg <= 60;
-    
-    const tempStatusEl = document.getElementById('tempStatus');
-    tempStatusEl.innerHTML = isTempSafe ? 
-        '<span class="badge bg-success">✓ Suhu Aman</span>' :
-        '<span class="badge bg-danger">✗ Suhu Tidak Aman</span>';
-    
-    const humStatusEl = document.getElementById('humStatus');
-    humStatusEl.innerHTML = isHumSafe ?
-        '<span class="badge bg-success">✓ Kelembapan Aman</span>' :
-        '<span class="badge bg-danger">✗ Kelembapan Tidak Aman</span>';
-
-    const statusAlertEl = document.getElementById('statusAlert');
-    if (isTempSafe && isHumSafe) {
-        statusAlertEl.innerHTML = '<span class="badge bg-success">✓ Semua Parameter Normal</span>';
+    // Check if data exists
+    if (!chartData.temperatures || chartData.temperatures.length === 0) {
+        console.warn('No chart data available');
+        document.getElementById('mainChart').style.display = 'none';
     } else {
-        const alerts = [];
-        if (!isTempSafe) alerts.push('<span class="badge bg-danger me-2">⚠ Suhu Abnormal</span>');
-        if (!isHumSafe) alerts.push('<span class="badge bg-danger">⚠ Kelembapan Abnormal</span>');
-        statusAlertEl.innerHTML = alerts.join('');
-    }
+        // Prepare data with timestamps
+        const dataPoints = chartData.dates.map((date, index) => ({
+            x: chartData.timestamps[index],
+            temp: chartData.temperatures[index],
+            humidity: chartData.humidities[index],
+            status: chartData.statuses[index],
+            time: date
+        })).sort((a, b) => a.x - b.x);
 
-    // Prepare ApexCharts Data
-    const tempSeries = [{
-        name: 'Suhu (°C)',
-        data: dataPoints.map(p => ({ x: p.x, y: p.temp }))
-    }];
+        // Calculate Statistics
+        function calculateStats(data) {
+            if (data.length === 0) return { avg: 0, max: 0, min: 0 };
+            const avg = (data.reduce((a, b) => a + b, 0) / data.length).toFixed(2);
+            const max = Math.max(...data).toFixed(2);
+            const min = Math.min(...data).toFixed(2);
+            return { avg, max, min };
+        }
+
+        const tempStats = calculateStats(chartData.temperatures);
+        const humStats = calculateStats(chartData.humidities);
+
+        // Update stats display
+        document.getElementById('tempAvg').textContent = tempStats.avg + '°C';
+        document.getElementById('tempMax').textContent = tempStats.max + '°C';
+        document.getElementById('tempMin').textContent = tempStats.min + '°C';
+        document.getElementById('humAvg').textContent = humStats.avg + '%';
+        document.getElementById('humMax').textContent = humStats.max + '%';
+        document.getElementById('humMin').textContent = humStats.min + '%';
+
+        // Check status
+        const isTempSafe = tempStats.avg >= 15 && tempStats.avg <= 30;
+        const isHumSafe = humStats.avg >= 35 && humStats.avg <= 60;
+        
+        const tempStatusEl = document.getElementById('tempStatus');
+        tempStatusEl.innerHTML = isTempSafe ? 
+            '<span class="badge bg-success">✓ Suhu Aman</span>' :
+            '<span class="badge bg-danger">✗ Suhu Tidak Aman</span>';
+        
+        const humStatusEl = document.getElementById('humStatus');
+        humStatusEl.innerHTML = isHumSafe ?
+            '<span class="badge bg-success">✓ Kelembapan Aman</span>' :
+            '<span class="badge bg-danger">✗ Kelembapan Tidak Aman</span>';
+
+        const statusAlertEl = document.getElementById('statusAlert');
+        if (isTempSafe && isHumSafe) {
+            statusAlertEl.innerHTML = '<span class="badge bg-success">✓ Semua Parameter Normal</span>';
+        } else {
+            const alerts = [];
+            if (!isTempSafe) alerts.push('<span class="badge bg-danger me-2">⚠ Suhu Abnormal</span>');
+            if (!isHumSafe) alerts.push('<span class="badge bg-danger">⚠ Kelembapan Abnormal</span>');
+            statusAlertEl.innerHTML = alerts.join('');
+        }
+
+        // Prepare ApexCharts Data
+        const tempSeries = [{
+            name: 'Suhu (°C)',
+            data: dataPoints.map(p => ({ x: p.x, y: p.temp }))
+        }];
 
     const humSeries = [{
         name: 'Kelembapan (%)',
@@ -519,5 +540,6 @@
             link.click();
         });
     });
+    } // Close if data exists
 </script>
 @endsection

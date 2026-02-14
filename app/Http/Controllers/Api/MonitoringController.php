@@ -117,3 +117,4 @@ class MonitoringController extends Controller
             'data' => $data,
         ], 200);
     }
+}

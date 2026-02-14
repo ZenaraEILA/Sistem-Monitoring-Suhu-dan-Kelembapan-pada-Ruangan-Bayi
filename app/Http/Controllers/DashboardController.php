@@ -10,17 +10,14 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    /**
-     * Show the main dashboard.
-     */
     public function index()
     {
         $devices = Device::with(['monitorings' => function ($query) {
             $query->latest('recorded_at')->limit(1);
         }])->get();
 
-        // Get latest monitoring for each device
-        $latestMonitorings = Monitoring::where('id', function ($query) {
+        // Get latest monitoring for each device - FIXED: Use whereIn instead of where
+        $latestMonitorings = Monitoring::whereIn('id', function ($query) {
             $query->selectRaw('MAX(id)')
                 ->from('monitorings')
                 ->groupBy('device_id');

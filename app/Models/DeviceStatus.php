@@ -55,25 +55,39 @@ class DeviceStatus extends Model
         };
     }
 
-    public static function checkDeviceStatus(Device $device): void
+    public static function checkDeviceStatus(Device $device, int $timeoutSeconds = 10): void
     {
-        $lastMonitoring = $device->monitorings()->latest('created_at')->first();
+        // SELALU gunakan recorded_at (waktu data dari sensor), bukan created_at (waktu disimpan DB)
+        $lastMonitoring = $device->monitorings()->latest('recorded_at')->first();
         $status = $device->deviceStatus ?? new static(['device_id' => $device->id]);
 
         if ($lastMonitoring) {
-            $minutesAgo = $lastMonitoring->created_at->diffInMinutes(now());
+            // Get current time from DATABASE (bukan local PHP time!)
+            $dbNow = \DB::selectOne('SELECT NOW() as db_time');
+            $serverTime = new \DateTime($dbNow->db_time);
             
-            if ($minutesAgo > 5) {
-                $status->status = 'offline';
-                $status->offline_minutes = $minutesAgo;
-            } else {
+            // Hitung selisih waktu BERDASARKAN DATABASE TIME
+            $diff = $serverTime->diff($lastMonitoring->recorded_at);
+            $secondsAgo = ($diff->days * 86400) + ($diff->h * 3600) + ($diff->i * 60) + $diff->s;
+            $minutesAgo = (int)($secondsAgo / 60);
+            
+            // Status logic: ONLINE jika data masuk dalam timeout window (default 10 detik)
+            // Berikan margin 10 detik untuk network latency + processing time
+            if ($secondsAgo <= $timeoutSeconds) {
                 $status->status = 'online';
                 $status->offline_minutes = 0;
+            } else {
+                $status->status = 'offline';
+                $status->offline_minutes = $minutesAgo;
             }
             
-            $status->last_data_at = $lastMonitoring->created_at;
+            // PENTING: Update last_data_at dengan recorded_at (waktu sensor), bukan created_at
+            $status->last_data_at = $lastMonitoring->recorded_at;
         } else {
+            // Tidak ada data sama sekali
             $status->status = 'unknown';
+            $status->offline_minutes = 0; // Set to 0 (not null) for offline_minutes
+            $status->last_data_at = null;
         }
 
         $status->checked_at = now();

@@ -62,6 +62,9 @@
 </div>
 @endif
 
+<!-- All Devices Status Indicator -->
+@include('partials.devices-status')
+
 <!-- Daily Summary -->
 <div class="row mb-4">
     <div class="col-12">
@@ -173,11 +176,11 @@
             <div class="card-header bg-light border-top">
                 <div class="d-flex justify-content-between align-items-center">
                     <small class="text-muted">
-                        <i class="fas fa-wifi device-connection-icon" style="color: #28a745;"></i>
-                        <span class="device-connection-status">TERHUBUNG</span>
+                        <i class="fas fa-wifi device-connection-icon" style="color: #dc3545;"></i>
+                        <span class="device-connection-status">TIDAK TERHUBUNG</span>
                     </small>
                     <small class="text-muted device-last-update">
-                        sekarang
+                        loading...
                     </small>
                 </div>
             </div>
@@ -246,7 +249,22 @@
                     <hr>
                     <small class="text-muted device-recorded-time">
                         <i class="fas fa-clock"></i> 
-                        Terakhir diperbarui: {{ $monitoring->recorded_at->diffForHumans() }}
+                        Terakhir diperbarui: 
+                        @php
+                            $diffMinutes = now()->diffInMinutes($monitoring->recorded_at);
+                            if ($diffMinutes < 0) {
+                                echo 'sekarang';
+                            } elseif ($diffMinutes === 0) {
+                                echo 'sekarang';
+                            } elseif ($diffMinutes === 1) {
+                                echo '1 menit lalu';
+                            } elseif ($diffMinutes < 60) {
+                                echo $diffMinutes . ' menit lalu';
+                            } else {
+                                $hours = intval($diffMinutes / 60);
+                                echo ($hours === 1 ? '1 jam' : $hours . ' jam') . ' lalu';
+                            }
+                        @endphp
                     </small>
                 @else
                     <div class="text-center py-5">
@@ -392,174 +410,271 @@
 const POLLING_INTERVAL = 10000; // 10 seconds
 let lastConnectionStates = {}; // Track previous connection states
 let connectionNotificationShown = {}; // Track which devices have shown notifications
+let realtimePollInterval = null;
+let lastEspStatus = null;
+let espConnectedShown = false;
+let espDisconnectedShown = false;
 
-// Start polling on page load
+// HANYA SATU DOMContentLoaded listener - GABUNG SEMUA LOGIC DI SINI
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Dashboard realtime monitoring started');
-    fetchRealtimeData(); // Fetch immediately
-    setInterval(fetchRealtimeData, POLLING_INTERVAL); // Then poll every 10 seconds
+    console.log('🚀 Dashboard realtime monitoring started');
+    
+    // Fetch immediately
+    fetchRealtimeData();
+    
+    // Start polling setiap 1 detik untuk update real-time
+    realtimePollInterval = setInterval(fetchRealtimeData, 1000);
+    
+    console.log('✅ Real-time polling initialized (every 1 second)');
 });
 
 // Fetch realtime data from API
 function fetchRealtimeData() {
-    fetch('/api/monitoring/dashboard/realtime')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updateRealtimeDashboard(data.data);
-                updateLastUpdateTime(data.timestamp);
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching realtime data:', error);
-        });
+    try {
+        fetch('/api/monitoring/dashboard/realtime')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`API returned ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.data) {
+                    try {
+                        updateRealtimeDashboard(data.data);
+                        console.log('📊 Dashboard API timestamp:', data.timestamp, 'Type:', typeof data.timestamp);
+                        updateLastUpdateTime(data.timestamp);
+                    } catch(e) {
+                        console.error('❌ Error updating dashboard UI:', e);
+                    }
+                } else {
+                    console.warn('⚠️ API response not successful:', data);
+                }
+            })
+            .catch(error => {
+                console.error('❌ Error fetching realtime data:', error);
+            });
+    } catch(error) {
+        console.error('❌ Fatal fetch error:', error);
+    }
 }
 
 // Update dashboard with realtime data
 function updateRealtimeDashboard(devicesData) {
-    devicesData.forEach(device => {
-        const deviceCard = document.querySelector(`[data-device-id="${device.id}"]`);
-        
-        if (!deviceCard) {
-            console.warn(`Device card not found for ID: ${device.id}`);
+    try {
+        if (!devicesData || !Array.isArray(devicesData)) {
+            console.warn('Invalid devices data format');
             return;
         }
-
-        // Update temperature & humidity
-        if (device.temperature !== null) {
-            const tempElement = deviceCard.querySelector('.device-temp-value');
-            const humidityElement = deviceCard.querySelector('.device-humidity-value');
-            
-            if (tempElement) {
-                tempElement.textContent = device.temperature.toFixed(1);
-                // Update color based on safe range
-                const tempDisplay = deviceCard.querySelector('.device-temperature');
-                if (device.temperature < 15 || device.temperature > 30) {
-                    tempDisplay.classList.remove('text-success');
-                    tempDisplay.classList.add('text-danger');
-                } else {
-                    tempDisplay.classList.remove('text-danger');
-                    tempDisplay.classList.add('text-success');
-                }
-            }
-            
-            if (humidityElement) {
-                humidityElement.textContent = device.humidity.toFixed(1);
-                // Update color based on safe range
-                const humidityDisplay = deviceCard.querySelector('.device-humidity');
-                if (device.humidity < 35 || device.humidity > 60) {
-                    humidityDisplay.classList.remove('text-success');
-                    humidityDisplay.classList.add('text-danger');
-                } else {
-                    humidityDisplay.classList.remove('text-danger');
-                    humidityDisplay.classList.add('text-success');
-                }
-            }
-        }
-
-        // Update connection status
-        const connectionIcon = deviceCard.querySelector('.device-connection-icon');
-        const connectionStatus = deviceCard.querySelector('.device-connection-status');
-        const lastUpdateElement = deviceCard.querySelector('.device-last-update');
         
-        if (connectionIcon && connectionStatus) {
-            const wasConnected = lastConnectionStates[device.id] !== false;
-            const isNowConnected = device.is_connected;
-            
-            if (isNowConnected) {
-                connectionIcon.style.color = '#28a745'; // Green
-                connectionStatus.textContent = 'TERHUBUNG';
-                connectionIcon.className = 'fas fa-wifi device-connection-icon';
+        devicesData.forEach(device => {
+            try {
+                console.log(`📱 Processing Device ${device.id} (${device.device_name}): is_connected=${device.is_connected}, connection_status=${device.connection_status}`);
                 
-                // Show connected notification only if status changed
-                if (!wasConnected || !connectionNotificationShown[device.id]) {
-                    showConnectedNotification(device.device_name);
-                    connectionNotificationShown[device.id] = true;
-                }
-            } else {
-                connectionIcon.style.color = '#dc3545'; // Red
-                connectionStatus.textContent = 'TIDAK TERHUBUNG';
-                connectionIcon.className = 'fas fa-wifi-off device-connection-icon';
+                const deviceCard = document.querySelector(`[data-device-id="${device.id}"]`);
                 
-                // Show disconnected notification only if status changed
-                if (wasConnected || !connectionNotificationShown[device.id]) {
-                    showDisconnectedNotification(device.device_name);
-                    connectionNotificationShown[device.id] = true;
+                if (!deviceCard) {
+                    console.warn(`Device card not found for ID: ${device.id}`);
+                    return;
                 }
-            }
-            
-            lastConnectionStates[device.id] = isNowConnected;
-        }
 
-        // Update last update time
-        if (lastUpdateElement && device.minutes_ago !== null) {
-            let timeText = '';
-            if (device.minutes_ago === 0) {
-                timeText = 'sekarang';
-            } else if (device.minutes_ago === 1) {
-                timeText = '1 menit lalu';
-            } else if (device.minutes_ago < 60) {
-                timeText = `${device.minutes_ago} menit lalu`;
-            } else {
-                const hours = Math.floor(device.minutes_ago / 60);
-                timeText = hours === 1 ? '1 jam lalu' : `${hours} jam lalu`;
-            }
-            lastUpdateElement.textContent = timeText;
-        }
+                // Update temperature & humidity
+                if (device.temperature !== null) {
+                    const tempElement = deviceCard.querySelector('.device-temp-value');
+                    const humidityElement = deviceCard.querySelector('.device-humidity-value');
+                    
+                    if (tempElement) {
+                        tempElement.textContent = device.temperature.toFixed(1);
+                        // Update color based on safe range
+                        const tempDisplay = deviceCard.querySelector('.device-temperature');
+                        if (device.temperature < 15 || device.temperature > 30) {
+                            tempDisplay.classList.remove('text-success');
+                            tempDisplay.classList.add('text-danger');
+                        } else {
+                            tempDisplay.classList.remove('text-danger');
+                            tempDisplay.classList.add('text-success');
+                        }
+                    }
+                    
+                    if (humidityElement) {
+                        humidityElement.textContent = device.humidity.toFixed(1);
+                        // Update color based on safe range
+                        const humidityDisplay = deviceCard.querySelector('.device-humidity');
+                        if (device.humidity < 35 || device.humidity > 60) {
+                            humidityDisplay.classList.remove('text-success');
+                            humidityDisplay.classList.add('text-danger');
+                        } else {
+                            humidityDisplay.classList.remove('text-danger');
+                            humidityDisplay.classList.add('text-success');
+                        }
+                    }
+                }
 
-        // Update status badge
-        const statusBadge = deviceCard.querySelector('.device-status-badge');
-        const statusText = deviceCard.querySelector('.device-status-text');
-        if (statusBadge && statusText && device.status) {
-            statusText.textContent = device.status;
-            if (device.status === 'Aman') {
-                statusBadge.classList.remove('badge-tidak-aman');
-                statusBadge.classList.add('badge-aman');
-            } else {
-                statusBadge.classList.remove('badge-aman');
-                statusBadge.classList.add('badge-tidak-aman');
-            }
-        }
+                // Update connection status
+                const connectionIcon = deviceCard.querySelector('.device-connection-icon');
+                const connectionStatus = deviceCard.querySelector('.device-connection-status');
+                const lastUpdateElement = deviceCard.querySelector('.device-last-update');
+                
+                console.log(`🔌 Device ${device.id}: Found connectionStatus element: ${!!connectionStatus}, Current text: "${connectionStatus?.textContent}"`);
+                
+                if (connectionIcon && connectionStatus) {
+                    const wasConnected = lastConnectionStates[device.id] !== false;
+                    const isNowConnected = device.is_connected;
+                    
+                    if (isNowConnected) {
+                        connectionIcon.style.color = '#28a745'; // Green
+                        connectionStatus.textContent = 'TERHUBUNG';
+                        connectionIcon.className = 'fas fa-wifi device-connection-icon';
+                        console.log(`✅ Device ${device.id}: Updated to TERHUBUNG (green)`);
+                        
+                        // Show connected notification only if status changed
+                        if (!wasConnected || !connectionNotificationShown[device.id]) {
+                            showConnectedNotification(device.device_name);
+                            connectionNotificationShown[device.id] = true;
+                        }
+                    } else {
+                        connectionIcon.style.color = '#dc3545'; // Red
+                        connectionStatus.textContent = 'TIDAK TERHUBUNG';
+                        connectionIcon.className = 'fas fa-wifi-off device-connection-icon';
+                        console.log(`❌ Device ${device.id}: Updated to TIDAK TERHUBUNG (red)`);
+                        
+                        // Show disconnected notification only if status changed
+                        if (wasConnected || !connectionNotificationShown[device.id]) {
+                            showDisconnectedNotification(device.device_name);
+                            connectionNotificationShown[device.id] = true;
+                        }
+                    }
+                    
+                    lastConnectionStates[device.id] = isNowConnected;
+                }
 
-        // Update recorded time
-        const recordedTime = deviceCard.querySelector('.device-recorded-time');
-        if (recordedTime && device.last_update) {
-            const lastUpdate = new Date(device.last_update);
-            recordedTime.textContent = `⏰ Terakhir diperbarui: ${getRelativeTime(lastUpdate)}`;
-        }
-    });
+                // Update last update time
+                if (lastUpdateElement && device.minutes_ago !== null) {
+                    let timeText = '';
+                    if (device.minutes_ago === 0) {
+                        timeText = 'sekarang';
+                    } else if (device.minutes_ago === 1) {
+                        timeText = '1 menit lalu';
+                    } else if (device.minutes_ago < 60) {
+                        timeText = `${device.minutes_ago} menit lalu`;
+                    } else {
+                        const hours = Math.floor(device.minutes_ago / 60);
+                        timeText = hours === 1 ? '1 jam lalu' : `${hours} jam lalu`;
+                    }
+                    lastUpdateElement.textContent = timeText;
+                }
+
+                // Update status badge
+                const statusBadge = deviceCard.querySelector('.device-status-badge');
+                const statusText = deviceCard.querySelector('.device-status-text');
+                if (statusBadge && statusText && device.status) {
+                    statusText.textContent = device.status;
+                    if (device.status === 'Aman') {
+                        statusBadge.classList.remove('badge-tidak-aman');
+                        statusBadge.classList.add('badge-aman');
+                    } else {
+                        statusBadge.classList.remove('badge-aman');
+                        statusBadge.classList.add('badge-tidak-aman');
+                    }
+                }
+
+                // Update recorded time
+                const recordedTime = deviceCard.querySelector('.device-recorded-time');
+                if (recordedTime && device.last_update) {
+                    const lastUpdate = new Date(device.last_update);
+                    recordedTime.textContent = `⏰ Terakhir diperbarui: ${getRelativeTime(lastUpdate)}`;
+                }
+            } catch(deviceError) {
+                console.error(`❌ Error updating device ${device.id}:`, deviceError);
+            }
+        });
+    } catch(error) {
+        console.error('❌ Fatal error in updateRealtimeDashboard:', error);
+    }
 }
 
 // Show ESP8266 connected notification
 function showConnectedNotification(deviceName) {
-    const alertEl = document.getElementById('espConnectedAlert');
-    const messageEl = document.getElementById('espConnectedMessage');
-    
-    messageEl.textContent = `✓ ESP8266 "${deviceName}" TERHUBUNG - Data diterima`;
-    alertEl.classList.remove('d-none');
-    
-    // Auto-hide after 5 seconds
-    setTimeout(() => {
-        alertEl.classList.add('d-none');
-    }, 5000);
+    try {
+        const alertEl = document.getElementById('espConnectedAlert');
+        const messageEl = document.getElementById('espConnectedMessage');
+        
+        if (alertEl && messageEl) {
+            messageEl.textContent = `✓ ESP8266 "${deviceName}" TERHUBUNG - Data diterima`;
+            alertEl.classList.remove('d-none');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                if (alertEl) {
+                    alertEl.classList.add('d-none');
+                }
+            }, 5000);
+        }
+    } catch(error) {
+        console.warn('Error showing connected notification:', error);
+    }
 }
 
 // Show ESP8266 disconnected notification
 function showDisconnectedNotification(deviceName) {
-    const alertEl = document.getElementById('espDisconnectedAlert');
-    const messageEl = document.getElementById('espDisconnectedMessage');
-    
-    messageEl.textContent = `⚠️ ESP8266 "${deviceName}" TIDAK TERHUBUNG - Periksa koneksi WiFi`;
-    alertEl.classList.remove('d-none');
-    
-    // Do NOT auto-hide - user should dismiss manually
+    try {
+        const alertEl = document.getElementById('espDisconnectedAlert');
+        const messageEl = document.getElementById('espDisconnectedMessage');
+        
+        if (alertEl && messageEl) {
+            messageEl.textContent = `⚠️ ESP8266 "${deviceName}" TIDAK TERHUBUNG - Periksa koneksi WiFi`;
+            alertEl.classList.remove('d-none');
+            // Do NOT auto-hide - user should dismiss manually
+        }
+    } catch(error) {
+        console.warn('Error showing disconnected notification:', error);
+    }
 }
 
 // Update the global "last updated" time
 function updateLastUpdateTime(timestamp) {
     const element = document.getElementById('lastUpdateTime');
     if (element) {
-        const time = new Date(timestamp);
+        // Validasi timestamp - jika tidak valid, gunakan now
+        let time;
+        if (!timestamp || timestamp === 0 || timestamp === '0') {
+            console.log('📝 No timestamp provided, using current time');
+            time = new Date();
+        } else {
+            console.log('📝 Processing timestamp:', timestamp, 'Type:', typeof timestamp);
+            
+            // Handle ISO8601 string format (dari API)
+            if (typeof timestamp === 'string' && (timestamp.includes('T') || timestamp.includes('-'))) {
+                console.log('📝 Detected ISO8601 format');
+                time = new Date(timestamp);
+            } else {
+                // Handle numeric timestamp (milliseconds or seconds)
+                const ts = typeof timestamp === 'string' ? parseInt(timestamp) : timestamp;
+                if (isNaN(ts)) {
+                    console.log('📝 Could not parse timestamp, using current time');
+                    time = new Date();
+                } else if (ts > 1000000000000) {
+                    // Already in milliseconds
+                    console.log('📝 Timestamp in milliseconds');
+                    time = new Date(ts);
+                } else if (ts > 0) {
+                    // Likely in seconds
+                    console.log('📝 Timestamp in seconds');
+                    time = new Date(ts * 1000);
+                } else {
+                    console.log('📝 Invalid numeric timestamp');
+                    time = new Date();
+                }
+            }
+        }
+        
+        // Pastikan date valid
+        if (isNaN(time.getTime())) {
+            console.log('⚠️ Invalid date object, using current time');
+            time = new Date();
+        }
+        
+        console.log('📝 Final time object:', time.toISOString(), 'Display:', getRelativeTime(time));
         element.textContent = getRelativeTime(time);
     }
 }
@@ -582,228 +697,66 @@ function getRelativeTime(date) {
 }
 
 // Add rotation animation to refresh spinner during polling
-const originalFetch = window.fetch;
-window.fetch = function(...args) {
-    const spinner = document.getElementById('refreshSpinner');
-    if (spinner) {
-        spinner.style.animation = 'spin 1s linear infinite';
-    }
-    
-    return originalFetch.apply(this, args).then(response => {
-        if (spinner) {
-            spinner.style.animation = 'none';
+// Wrap dalam try-catch untuk avoid breaking other functionality
+try {
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+        try {
+            const spinner = document.getElementById('refreshSpinner');
+            if (spinner) {
+                spinner.style.animation = 'spin 1s linear infinite';
+            }
+        } catch(e) {
+            console.warn('Spinner animation error:', e);
         }
-        return response;
-    });
-};
+        
+        return originalFetch.apply(this, args).then(response => {
+            try {
+                const spinner = document.getElementById('refreshSpinner');
+                if (spinner) {
+                    spinner.style.animation = 'none';
+                }
+            } catch(e) {
+                console.warn('Spinner animation clear error:', e);
+            }
+            return response;
+        }).catch(error => {
+            console.warn('Fetch error:', error);
+            throw error;
+        });
+    };
+} catch(e) {
+    console.warn('Could not setup fetch override:', e);
+}
 
 // Add CSS for spinner animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-`;
-document.head.appendChild(style);
+try {
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+    console.log('✅ Spinner animation CSS loaded');
+} catch(error) {
+    console.warn('⚠️ Could not add spinner animation CSS:', error);
+}
 
 // ============================================
-// REAL-TIME MONITORING (Update setiap 1 detik)
+// ✅ REAL-TIME MONITORING (IMPLEMENTED ABOVE)
 // ============================================
-
-let realtimePollInterval = null;
-let lastEspStatus = null;
-let espConnectedShown = false;
-let espDisconnectedShown = false;
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Real-time monitoring started...');
-    
-    // Start polling setiap 1 detik
-    realtimePollInterval = setInterval(fetchRealtimeData, 1000);
-    
-    // Fetch immediately on load
-    fetchRealtimeData();
-    
-    console.log('✅ Real-time polling initialized (every 1 second)');
-});
-
-/**
- * Fetch latest real-time data dari API
- */
-function fetchRealtimeData() {
-    fetch('/api/monitoring/realtime/latest')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.data.length > 0) {
-                const firstDevice = data.data[0];
-                updateIndicators(firstDevice);
-                updateDeviceCards(data.data);
-                updateEspStatus(firstDevice);
-            }
-        })
-        .catch(error => {
-            console.error('❌ Error fetching realtime data:', error);
-        });
-}
-
-/**
- * Update navbar indicator lights
- */
-function updateIndicators(device) {
-    const tempIndicator = document.getElementById('tempIndicator');
-    const tempValue = document.getElementById('tempValue');
-    
-    if (device.temperature !== null) {
-        tempValue.textContent = device.temperature.toFixed(1);
-        
-        if (device.temp_status === 'danger') {
-            tempIndicator.style.backgroundColor = '#dc3545';
-        } else if (device.temp_status === 'warning') {
-            tempIndicator.style.backgroundColor = '#ffc107';
-        } else {
-            tempIndicator.style.backgroundColor = '#28a745';
-        }
-        tempIndicator.classList.add('blinking-fast');
-    }
-    
-    const humidityIndicator = document.getElementById('humidityIndicator');
-    const humidityValue = document.getElementById('humidityValue');
-    
-    if (device.humidity !== null) {
-        humidityValue.textContent = Math.round(device.humidity);
-        
-        if (device.humidity_status === 'warning') {
-            humidityIndicator.style.backgroundColor = '#ff9800';
-        } else {
-            humidityIndicator.style.backgroundColor = '#0dcaf0';
-        }
-        humidityIndicator.classList.add('blinking-fast');
-    }
-}
-
-/**
- * Update ESP status indicator
- */
-function updateEspStatus(device) {
-    const espIndicator = document.getElementById('espIndicator');
-    const espStatus = document.getElementById('espStatus');
-    const espConnectedAlert = document.getElementById('espConnectedAlert');
-    const espDisconnectedAlert = document.getElementById('espDisconnectedAlert');
-    
-    if (device.esp_online) {
-        espIndicator.style.backgroundColor = '#dc3545';
-        espIndicator.classList.add('online');
-        espIndicator.classList.remove('offline');
-        espStatus.textContent = 'ONLINE';
-        
-        if (lastEspStatus !== true && !espConnectedShown) {
-            espConnectedAlert.classList.remove('d-none');
-            setTimeout(() => {
-                espConnectedAlert.classList.add('d-none');
-            }, 3000);
-            espConnectedShown = true;
-            espDisconnectedShown = false;
-            console.log('✅ ESP8266 TERHUBUNG');
-        }
-    } else {
-        espIndicator.style.backgroundColor = '#6c757d';
-        espIndicator.classList.remove('online');
-        espIndicator.classList.add('offline');
-        espStatus.textContent = '❌ OFFLINE';
-        
-        if (lastEspStatus !== false && !espDisconnectedShown) {
-            espDisconnectedAlert.classList.remove('d-none');
-            console.log('⚠️ ESP8266 TIDAK TERHUBUNG');
-            espDisconnectedShown = true;
-            espConnectedShown = false;
-        }
-    }
-    
-    lastEspStatus = device.esp_online;
-}
-
-/**
- * Update device cards
- */
-function updateDeviceCards(devices) {
-    devices.forEach(device => {
-        const deviceCard = document.querySelector(`[data-device-id="${device.id}"]`);
-        
-        if (!deviceCard) return;
-        
-        const tempElement = deviceCard.querySelector('.device-temp-value');
-        if (tempElement && device.temperature !== null) {
-            tempElement.textContent = device.temperature.toFixed(1);
-            const tempDisplay = deviceCard.querySelector('.device-temperature');
-            if (device.temperature < 15 || device.temperature > 30) {
-                tempDisplay.classList.add('text-danger');
-                tempDisplay.classList.remove('text-success');
-            } else {
-                tempDisplay.classList.add('text-success');
-                tempDisplay.classList.remove('text-danger');
-            }
-        }
-        
-        const humidityElement = deviceCard.querySelector('.device-humidity-value');
-        if (humidityElement && device.humidity !== null) {
-            humidityElement.textContent = device.humidity.toFixed(0);
-            const humidityDisplay = deviceCard.querySelector('.device-humidity');
-            if (device.humidity < 35 || device.humidity > 60) {
-                humidityDisplay.classList.add('text-warning');
-                humidityDisplay.classList.remove('text-info');
-            } else {
-                humidityDisplay.classList.add('text-info');
-                humidityDisplay.classList.remove('text-warning');
-            }
-        }
-        
-        const statusBadge = deviceCard.querySelector('.device-status-badge');
-        if (statusBadge && device.monitoring_status) {
-            statusBadge.textContent = device.monitoring_status;
-            if (device.monitoring_status === 'Aman') {
-                statusBadge.classList.add('badge-success');
-                statusBadge.classList.remove('badge-danger');
-            } else {
-                statusBadge.classList.add('badge-danger');
-                statusBadge.classList.remove('badge-success');
-            }
-        }
-        
-        const lastUpdateElement = deviceCard.querySelector('.device-last-update');
-        if (lastUpdateElement && device.seconds_ago !== null) {
-            if (device.seconds_ago < 60) {
-                lastUpdateElement.textContent = `${device.seconds_ago} detik lalu`;
-            } else {
-                lastUpdateElement.textContent = `${Math.floor(device.seconds_ago / 60)} menit lalu`;
-            }
-            
-            if (device.seconds_ago < 5) {
-                lastUpdateElement.classList.add('text-success');
-                lastUpdateElement.classList.remove('text-warning', 'text-danger');
-            } else if (device.seconds_ago < 30) {
-                lastUpdateElement.classList.add('text-warning');
-                lastUpdateElement.classList.remove('text-success', 'text-danger');
-            } else {
-                lastUpdateElement.classList.add('text-danger');
-                lastUpdateElement.classList.remove('text-success', 'text-warning');
-            }
-        }
-        
-        const connectionIcon = deviceCard.querySelector('.device-connection-icon');
-        const connectionStatus = deviceCard.querySelector('.device-connection-status');
-        
-        if (connectionIcon && connectionStatus) {
-            if (device.esp_online) {
-                connectionIcon.style.color = '#28a745';
-                connectionStatus.textContent = 'TERHUBUNG';
-            } else {
-                connectionIcon.style.color = '#dc3545';
-                connectionStatus.textContent = 'TIDAK TERHUBUNG';
-            }
-        }
-    });
-}
+// Real-time polling sudah dijalankan di DOMContentLoaded listener
+// Menggunakan: fetchRealtimeData() + updateRealtimeDashboard()
+// Endpoint: /api/monitoring/dashboard/realtime
+// Update interval: 1 detik (1000ms)
+// ⚠️ DEPRECATED FUNCTIONS REMOVED:
+// - Old fetchRealtimeData() (used /api/monitoring/realtime/latest)
+// - updateIndicators() (duplicate logic)
+// - updateEspStatus() (duplicate logic)
+// - updateDeviceCards() (duplicate logic using esp_online field)
+// These were causing conflicts with the correct real-time polling system
 
 window.addEventListener('beforeunload', function() {
     if (realtimePollInterval) {

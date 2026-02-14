@@ -61,6 +61,29 @@ Route::middleware('api')->prefix('monitoring')->group(function () {
      * GET /api/monitoring/{deviceId}
      */
     Route::get('/{deviceId}', [MonitoringController::class, 'getLatest']);
+
+    /**
+     * ===== SIMPLE REAL-TIME POLLING ENDPOINTS =====
+     * Digunakan untuk polling real-time dari dashboard
+     * Response time: < 100ms untuk getLatestSimple, < 200ms untuk getChartDataSimple
+     */
+
+    /**
+     * Get latest data untuk real-time indicators (temperature, humidity, status)
+     * Update setiap 2 detik di frontend
+     * 
+     * GET /api/monitoring/get-latest?device_id=1
+     */
+    Route::get('/get-latest', [MonitoringController::class, 'getLatestSimple']);
+
+    /**
+     * Get chart data untuk real-time chart update
+     * Update setiap 5 detik di frontend
+     * 
+     * GET /api/monitoring/get-chart-data?device_id=1&timeframe=1_hour
+     * Timeframe options: 10_min, 30_min, 1_hour, 6_hours, 12_hours, 1_day
+     */
+    Route::get('/get-chart-data', [MonitoringController::class, 'getChartDataSimple']);
 });
 
 /**

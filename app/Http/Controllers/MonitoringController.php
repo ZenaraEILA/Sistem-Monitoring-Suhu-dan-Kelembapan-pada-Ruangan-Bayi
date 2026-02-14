@@ -49,7 +49,7 @@ class MonitoringController extends Controller
     }
 
     /**
-     * Show monitoring charts with advanced timeframe options
+     * Show monitoring charts with quick timeframe presets
      */
     public function chart(Request $request)
     {
@@ -71,44 +71,27 @@ class MonitoringController extends Controller
 
         $monitorings = Monitoring::where('device_id', $selectedDevice)
             ->whereBetween('recorded_at', [$startDate, $now])
-            ->with('incidentMarkers')
             ->orderBy('recorded_at')
             ->get();
 
-        // Format data for chart with incident markers
+        // Format data for chart
         $temperatures = [];
         $humidities = [];
-        $timestamps = [];
         $dates = [];
         $statuses = [];
-        $incidents = [];
 
         foreach ($monitorings as $monitoring) {
-            $temperatures[] = $monitoring->temperature;
-            $humidities[] = $monitoring->humidity;
-            $timestamps[] = $monitoring->recorded_at->getTimestamp() * 1000; // Convert to milliseconds for ApexCharts
+            $temperatures[] = $monitoring->temperature ?? 0;
+            $humidities[] = $monitoring->humidity ?? 0;
             $dates[] = $monitoring->recorded_at->format('H:i:s');
             $statuses[] = $monitoring->status === 'Tidak Aman' ? 'danger' : 'safe';
-            
-            // Add incident markers if present
-            if ($monitoring->incidentMarkers && $monitoring->incidentMarkers->count() > 0) {
-                foreach ($monitoring->incidentMarkers as $marker) {
-                    $incidents[] = [
-                        'x' => $monitoring->recorded_at->getTimestamp() * 1000,
-                        'label' => $marker->note ?? 'Incident'
-                    ];
-                }
-            }
         }
 
         $chartData = [
             'temperatures' => $temperatures,
             'humidities' => $humidities,
-            'timestamps' => $timestamps,
             'dates' => $dates,
             'statuses' => $statuses,
-            'incidents' => $incidents,
-            'timeframe' => $timeframe,
         ];
 
         return view('monitoring.chart', compact('devices', 'selectedDevice', 'timeframe', 'chartData'));
@@ -122,8 +105,20 @@ class MonitoringController extends Controller
         $devices = Device::all();
         $selectedDevice = $request->get('device_id', $devices->first()->id ?? null);
         $date = $request->get('date', Carbon::today()->format('Y-m-d'));
+        $startTime = $request->get('start_time', '00:00');
+        $endTime = $request->get('end_time', '23:59');
 
-        $hourlyData = Monitoring::getHourlyData($selectedDevice, Carbon::parse($date));
+        // Filter hourly data by time range
+        $allHourlyData = Monitoring::getHourlyData($selectedDevice, Carbon::parse($date));
+        
+        // Convert time strings to hours
+        $startHour = intval(explode(':', $startTime)[0]);
+        $endHour = intval(explode(':', $endTime)[0]);
+        
+        // Filter by hour range
+        $hourlyData = $allHourlyData->filter(function($item) use ($startHour, $endHour) {
+            return $item->hour >= $startHour && $item->hour <= $endHour;
+        })->values();
 
         $chartData = [
             'hours' => $hourlyData->pluck('hour')->map(function ($hour) {
@@ -135,7 +130,7 @@ class MonitoringController extends Controller
             'avg_humidities' => $hourlyData->pluck('avg_humidity')->toArray(),
         ];
 
-        return view('monitoring.hourly-trend', compact('devices', 'selectedDevice', 'date', 'chartData', 'hourlyData'));
+        return view('monitoring.hourly-trend', compact('devices', 'selectedDevice', 'date', 'startTime', 'endTime', 'chartData', 'hourlyData'));
     }
 
     /**

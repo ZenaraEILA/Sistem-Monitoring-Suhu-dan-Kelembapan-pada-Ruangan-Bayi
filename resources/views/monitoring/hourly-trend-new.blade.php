@@ -19,7 +19,7 @@
     </div>
     <div class="card-body">
         <form action="{{ route('monitoring.hourly-trend') }}" method="get" class="row g-3">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <label for="device_id" class="form-label">Ruangan/Device</label>
                 <select name="device_id" id="device_id" class="form-select">
                     @foreach($devices as $device)
@@ -29,22 +29,14 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <label for="date" class="form-label">Tanggal</label>
                 <input type="date" name="date" id="date" class="form-control" value="{{ $date }}">
             </div>
-            <div class="col-md-2">
-                <label for="start_time" class="form-label">Jam Mulai</label>
-                <input type="time" name="start_time" id="start_time" class="form-control" value="{{ $startTime ?? '' }}">
-            </div>
-            <div class="col-md-2">
-                <label for="end_time" class="form-label">Jam Akhir</label>
-                <input type="time" name="end_time" id="end_time" class="form-control" value="{{ $endTime ?? '' }}">
-            </div>
-            <div class="col-md-2">
+            <div class="col-md-4">
                 <label>&nbsp;</label>
                 <button type="submit" class="btn btn-primary w-100">
-                    <i class="fas fa-search"></i> Cari
+                    <i class="fas fa-search"></i> Tampilkan Data
                 </button>
             </div>
         </form>
@@ -66,19 +58,6 @@
         $avgHumidity = $humidities->count() > 0 ? round($humidities->avg(), 0) : '--';
     @endphp
 
-    <!-- Time Range Info -->
-    @php
-        $displayStartTime = $startTime ?? '00:00';
-        $displayEndTime = $endTime ?? '23:59';
-    @endphp
-    <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
-        <i class="fas fa-clock me-2"></i>
-        <strong>Rentang Waktu:</strong> 
-        {{ $displayStartTime }} - {{ $displayEndTime }} 
-        pada tanggal {{ date('d/m/Y', strtotime($date)) }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-
     <!-- Statistics Cards -->
     <div class="row mb-4">
         <div class="col-md-3">
@@ -87,10 +66,10 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <small class="text-muted d-block fw-bold">Rata-rata Suhu</small>
-                            <h3 class="mb-0" style="color: #0056b3;">{{ $avgTemp }}°C</h3>
+                            <h3 class="mb-0" style="color: #dc3545;">{{ $avgTemp }}°C</h3>
                         </div>
                         <div class="ms-auto">
-                            <i class="fas fa-thermometer-half fa-3x" style="color: #0056b3; opacity: 0.2;"></i>
+                            <i class="fas fa-thermometer-half fa-3x" style="color: #dc3545; opacity: 0.2;"></i>
                         </div>
                     </div>
                 </div>
@@ -102,10 +81,10 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <small class="text-muted d-block fw-bold">Suhu Maksimal</small>
-                            <h3 class="mb-0" style="color: #004084;">{{ $maxTemp }}°C</h3>
+                            <h3 class="mb-0" style="color: #ff6b6b;">{{ $maxTemp }}°C</h3>
                         </div>
                         <div class="ms-auto">
-                            <i class="fas fa-arrow-up fa-3x" style="color: #004084; opacity: 0.2;"></i>
+                            <i class="fas fa-arrow-up fa-3x" style="color: #ff6b6b; opacity: 0.2;"></i>
                         </div>
                     </div>
                 </div>
@@ -117,10 +96,10 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <small class="text-muted d-block fw-bold">Suhu Minimal</small>
-                            <h3 class="mb-0" style="color: #007bff;">{{ $minTemp }}°C</h3>
+                            <h3 class="mb-0" style="color: #0dcaf0;">{{ $minTemp }}°C</h3>
                         </div>
                         <div class="ms-auto">
-                            <i class="fas fa-arrow-down fa-3x" style="color: #007bff; opacity: 0.2;"></i>
+                            <i class="fas fa-arrow-down fa-3x" style="color: #0dcaf0; opacity: 0.2;"></i>
                         </div>
                     </div>
                 </div>
@@ -132,10 +111,10 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <small class="text-muted d-block fw-bold">Rata-rata Kelembapan</small>
-                            <h3 class="mb-0" style="color: #007bff;">{{ $avgHumidity }}%</h3>
+                            <h3 class="mb-0" style="color: #0dcaf0;">{{ $avgHumidity }}%</h3>
                         </div>
                         <div class="ms-auto">
-                            <i class="fas fa-tint fa-3x" style="color: #007bff; opacity: 0.2;"></i>
+                            <i class="fas fa-tint fa-3x" style="color: #0dcaf0; opacity: 0.2;"></i>
                         </div>
                     </div>
                 </div>
@@ -143,23 +122,13 @@
         </div>
     </div>
 
-    <!-- Professional Chart Container - MetaTrader 5 Style -->
+    <!-- Chart Container -->
     <div class="card mb-4">
-        <div class="card-header" style="background: linear-gradient(135deg, #0056b3 0%, #004084 100%); color: white;">
-            <h5 class="mb-0" style="color: white;"><i class="fas fa-chart-candle"></i> Grafik Analisis Tren Candle</h5>
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-chart-line"></i> Grafik Tren Per Jam</h5>
         </div>
-        <div class="card-body" style="background-color: #f8f9fa;">
-            <div id="candleChart" style="height: 500px;"></div>
-        </div>
-    </div>
-
-    <!-- Secondary Chart: Temperature & Humidity Overlay -->
-    <div class="card mb-4">
-        <div class="card-header" style="background: linear-gradient(135deg, #0056b3 0%, #004084 100%); color: white;">
-            <h5 class="mb-0" style="color: white;"><i class="fas fa-wave-square"></i> Grafik Suhu & Kelembapan Overlay</h5>
-        </div>
-        <div class="card-body" style="background-color: #f8f9fa;">
-            <div id="overlayChart" style="height: 400px;"></div>
+        <div class="card-body">
+            <canvas id="trendChart" height="80"></canvas>
         </div>
     </div>
 
@@ -188,20 +157,20 @@
                         $maxTemp = $data->max_temp ?? 0;
                         $avgHum = $data->avg_humidity ?? 0;
                         
-                        // Temperature color - all blue shades
-                        $tempColor = '#007bff'; // light blue
+                        // Temperature color
+                        $tempColor = '#28a745'; // green
                         if ($avgTemp >= 30) {
-                            $tempColor = '#0056b3'; // dark blue
+                            $tempColor = '#dc3545'; // red
                         } elseif ($avgTemp >= 28 || $avgTemp < 20) {
-                            $tempColor = '#004084'; // darker blue
+                            $tempColor = '#ffc107'; // yellow
                         }
                         
-                        // Humidity color - all blue shades
-                        $humColor = '#007bff'; // light blue
+                        // Humidity color
+                        $humColor = '#0dcaf0'; // blue
                         if ($avgHum >= 65 || $avgHum < 35) {
-                            $humColor = '#0056b3'; // dark blue
+                            $humColor = '#dc3545'; // red
                         } elseif ($avgHum >= 60 || $avgHum < 40) {
-                            $humColor = '#004084'; // darker blue
+                            $humColor = '#ff9800'; // orange
                         }
                         
                         // Percentage for bar
@@ -262,203 +231,136 @@
 @endsection
 
 @section('js')
-<!-- ApexCharts Library - Professional Financial Charts -->
-<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.46.0/dist/apexcharts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const hourlyData = @json($hourlyData);
+        const canvas = document.getElementById('trendChart');
         
-        if (!hourlyData || hourlyData.length === 0) {
-            console.log('No data available for charts');
-            return;
-        }
-
-        // Prepare candlestick data
-        const candleData = hourlyData.map((d, idx) => ({
-            x: new Date(new Date().toDateString() + ' ' + (String(d.hour).padStart(2, '0')) + ':00'),
-            y: [
-                d.min_temp || 0,      // Open
-                d.max_temp || 0,      // High
-                d.min_temp || 0,      // Low
-                d.avg_temp || 0       // Close
-            ]
-        }));
-
-        // Prepare overlay data
+        // Only render chart if canvas exists and data exists
+        if (!canvas) return;
+        
+        const hourlyData = @json($hourlyData);
+        if (!hourlyData || hourlyData.length === 0) return;
+        
+        // Prepare chart data
         const labels = hourlyData.map(d => (String(d.hour).padStart(2, '0')) + ':00');
         const avgTemps = hourlyData.map(d => parseFloat(d.avg_temp) || 0);
-        const avgHumidities = hourlyData.map(d => parseFloat(d.avg_humidity) || 0);
+        const maxTemps = hourlyData.map(d => parseFloat(d.max_temp) || 0);
+        const minTemps = hourlyData.map(d => parseFloat(d.min_temp) || 0);
+        const avgHums = hourlyData.map(d => parseFloat(d.avg_humidity) || 0);
 
-        // Chart 1: Candlestick Chart (MetaTrader 5 Style)
-        const candleOptions = {
-            chart: {
-                type: 'candlestick',
-                height: 500,
-                zoom: { enabled: true },
-                toolbar: {
-                    show: true,
-                    tools: {
-                        download: true,
-                        selection: true,
-                        zoom: true,
-                        zoomin: true,
-                        zoomout: true,
-                        pan: true,
-                        reset: true
-                    }
-                },
-                background: '#1a1a1a'
-            },
-            title: {
-                text: 'Temperature Candlestick Analysis',
-                style: {
-                    color: '#fff',
-                    fontSize: '14px'
-                }
-            },
-            xaxis: {
-                type: 'datetime',
-                labels: {
-                    style: { colors: '#888', fontSize: '11px' }
-                },
-                axisBorder: { color: '#444' },
-                axisTicks: { color: '#444' }
-            },
-            yaxis: {
-                title: {
-                    text: 'Temperature (°C)',
-                    style: { color: '#0056b3', fontSize: '12px', fontWeight: 'bold' }
-                },
-                labels: {
-                    style: { colors: '#0056b3', fontSize: '11px' }
-                }
-            },
-            plotOptions: {
-                candlestick: {
-                    colors: {
-                        upward: '#0056b3',    // Dark blue for up
-                        downward: '#e8f0ff'    // Light blue for down
+        // Render chart
+        new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Rata-rata Suhu',
+                        data: avgTemps,
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#dc3545',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        tension: 0.4,
+                        yAxisID: 'y'
                     },
-                    wick: {
-                        useFillColor: true
+                    {
+                        label: 'Suhu Maksimal',
+                        data: maxTemps,
+                        borderColor: '#ff6b6b',
+                        borderWidth: 1,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Suhu Minimal',
+                        data: minTemps,
+                        borderColor: '#17a2b8',
+                        borderWidth: 1,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Rata-rata Kelembapan',
+                        data: avgHums,
+                        borderColor: '#0dcaf0',
+                        backgroundColor: 'rgba(13, 202, 240, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#0dcaf0',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        tension: 0.4,
+                        yAxisID: 'y1'
                     }
-                }
+                ]
             },
-            grid: {
-                borderColor: '#333',
-                strokeDashArray: 3,
-                xaxis: { lines: { show: true } },
-                yaxis: { lines: { show: true } }
-            },
-            tooltip: {
-                theme: 'dark',
-                y: {
-                    formatter: function(val) {
-                        return val.toFixed(2) + '°C';
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 15,
+                            font: { size: 11, weight: 'bold' }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        padding: 10,
+                        titleFont: { size: 12, weight: 'bold' },
+                        bodyFont: { size: 10 }
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Suhu (°C)',
+                            color: '#dc3545',
+                            font: { size: 11, weight: 'bold' }
+                        },
+                        ticks: { color: '#dc3545', font: { weight: '600' } },
+                        grid: { color: 'rgba(220, 53, 69, 0.1)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Kelembapan (%)',
+                            color: '#0dcaf0',
+                            font: { size: 11, weight: 'bold' }
+                        },
+                        ticks: { color: '#0dcaf0', font: { weight: '600' } },
+                        grid: { display: false }
                     }
                 }
             }
-        };
-
-        // Series data for candlestick
-        const candleSeries = [{
-            data: candleData
-        }];
-
-        // Render Candlestick Chart
-        const candleChart = new ApexCharts(document.querySelector('#candleChart'), {
-            ...candleOptions,
-            series: candleSeries
         });
-
-        candleChart.render();
-
-        // Chart 2: Area Chart with dual axis (Overlay)
-        const overlayOptions = {
-            chart: {
-                type: 'area',
-                height: 400,
-                zoom: { enabled: true },
-                toolbar: { show: true },
-                background: '#f8f9fa'
-            },
-            colors: ['#0056b3', '#007bff'],
-            dataLabels: { enabled: false },
-            stroke: {
-                curve: 'smooth',
-                width: 3
-            },
-            fill: {
-                type: 'gradient',
-                gradient: {
-                    shadeIntensity: 1,
-                    opacityFrom: 0.45,
-                    opacityTo: 0.05,
-                    stops: [20, 100, 100, 100]
-                }
-            },
-            xaxis: {
-                categories: labels,
-                labels: {
-                    style: { fontSize: '11px' }
-                }
-            },
-            yaxis: [
-                {
-                    title: {
-                        text: 'Temperature (°C)',
-                        style: { color: '#0056b3', fontSize: '12px', fontWeight: 'bold' }
-                    },
-                    labels: {
-                        style: { color: '#0056b3' }
-                    }
-                },
-                {
-                    opposite: true,
-                    title: {
-                        text: 'Humidity (%)',
-                        style: { color: '#007bff', fontSize: '12px', fontWeight: 'bold' }
-                    },
-                    labels: {
-                        style: { color: '#007bff' }
-                    }
-                }
-            ],
-            tooltip: {
-                shared: true,
-                theme: 'dark'
-            },
-            legend: {
-                position: 'top',
-                fontSize: '12px'
-            },
-            grid: {
-                borderColor: '#e0e0e0',
-                strokeDashArray: 4
-            }
-        };
-
-        const overlaySeries = [
-            {
-                name: 'Temperature (°C)',
-                data: avgTemps
-            },
-            {
-                name: 'Humidity (%)',
-                data: avgHumidities
-            }
-        ];
-
-        // Render Overlay Chart
-        const overlayChart = new ApexCharts(document.querySelector('#overlayChart'), {
-            ...overlayOptions,
-            series: overlaySeries
-        });
-
-        overlayChart.render();
-
-        console.log('✅ ApexCharts rendered successfully - MetaTrader 5 Style!');
     });
 </script>
 
@@ -471,19 +373,9 @@
     .table-hover tbody tr:hover {
         background-color: rgba(0, 0, 0, 0.02);
     }
-
-    /* ApexCharts Custom Styling */
-    .apexcharts-menu {
-        background-color: #2a2a2a !important;
-        border-color: #444 !important;
-    }
-
-    .apexcharts-menu-item {
-        color: #fff !important;
-    }
-
-    .apexcharts-menu-item:hover {
-        background-color: #444 !important;
+    
+    canvas {
+        display: block !important;
     }
 </style>
 

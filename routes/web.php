@@ -14,6 +14,7 @@ use App\Http\Controllers\AdvancedFeatureController;
 use App\Http\Controllers\PrintController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserManagementController;
 
 /**
  * Auth Routes
@@ -122,6 +123,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{device}/edit', [DeviceController::class, 'edit'])->name('device.edit');
         Route::put('/{device}', [DeviceController::class, 'update'])->name('device.update');
         Route::delete('/{device}', [DeviceController::class, 'destroy'])->name('device.destroy');
+    });
+
+    // User Management (Admin Only) - RBAC System
+    Route::prefix('admin')->middleware('is_admin')->name('admin.')->group(function () {
+        Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+        Route::get('/users/{user}', [UserManagementController::class, 'show'])->name('users.show');
+        Route::post('/users/{user}/update-role', [UserManagementController::class, 'updateRole'])->name('users.updateRole');
+        Route::post('/users/{user}/deactivate', [UserManagementController::class, 'deactivateUser'])->name('users.deactivate');
+        Route::post('/users/{user}/activate', [UserManagementController::class, 'activateUser'])->name('users.activate');
     });
 });
 

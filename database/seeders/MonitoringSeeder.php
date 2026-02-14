@@ -3,8 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Device;
-use App\Models\Monitoring;
-use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -13,68 +11,32 @@ class MonitoringSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Seed monitoring data for testing
+     * Create 5 empty devices (tanpa monitoring data)
      */
     public function run(): void
     {
-        // Create or get device
-        $device = Device::firstOrCreate(
-            ['device_name' => 'Ruang Bayi #1'],
-            [
-                'location' => 'NICU Ward',
-                'device_id' => strtolower(str_replace(' ', '_', 'Ruang Bayi #1')) . '_' . time(),
-            ]
-        );
+        // Define 5 devices dengan predictable device_id
+        $deviceConfigs = [
+            ['name' => 'Ruang Bayi #1', 'location' => 'NICU Ward A', 'device_id' => 'ruang_bayi_1'],
+            ['name' => 'Ruang Bayi #2', 'location' => 'NICU Ward B', 'device_id' => 'ruang_bayi_2'],
+            ['name' => 'Ruang Bayi #3', 'location' => 'Recovery Room', 'device_id' => 'ruang_bayi_3'],
+            ['name' => 'Ruang Bayi #4', 'location' => 'Observation Ward', 'device_id' => 'ruang_bayi_4'],
+            ['name' => 'Ruang Bayi #5', 'location' => 'Monitoring Room', 'device_id' => 'ruang_bayi_5'],
+        ];
 
-        // Delete existing monitoring data for this device
-        Monitoring::where('device_id', $device->id)->delete();
-
-        // Generate 24 hours of monitoring data (every 5 minutes)
-        $startTime = Carbon::now()->subHours(24)->startOfHour();
-        $currentTime = $startTime;
-        $endTime = Carbon::now();
-
-        $statuses = ['Aman', 'Tidak Aman'];
-        $dataCount = 0;
-
-        while ($currentTime <= $endTime) {
-            // Generate realistic baby monitoring data
-            // Normal baby temp: 36.5 - 37.5°C with small variations
-            $baseTemp = 37.0;
-            $tempVariation = sin($currentTime->timestamp / 3600) * 0.5 + (rand(-10, 10) / 10);
-            $temperature = round($baseTemp + $tempVariation, 2);
-
-            // Normal room humidity: 40 - 60%
-            $baseHumidity = 50;
-            $humVariation = sin($currentTime->timestamp / 7200) * 8 + (rand(-5, 5));
-            $humidity = max(40, min(70, round($baseHumidity + $humVariation, 2)));
-
-            // Determine status based on temperature
-            // Aman (Safe): 36.5 - 37.5°C
-            // Tidak Aman (Not Safe): < 36.5 or > 37.5°C
-            if ($temperature >= 38 || $temperature <= 36) {
-                $status = 'Tidak Aman';
-                $isEmergency = $temperature >= 38.5 || $temperature <= 35.5;
-            } else {
-                $status = 'Aman';
-                $isEmergency = false;
-            }
-
-            Monitoring::create([
-                'device_id' => $device->id,
-                'temperature' => $temperature,
-                'humidity' => $humidity,
-                'status' => $status,
-                'recorded_at' => $currentTime,
-                'action_note' => $status !== 'Aman' ? 'Monitoring diperlukan' : null,
-                'consecutive_unsafe_count' => $status !== 'Aman' ? 1 : 0,
-                'is_emergency' => $isEmergency,
-            ]);
-
-            $currentTime->addMinutes(5);
-            $dataCount++;
+        foreach ($deviceConfigs as $config) {
+            // Create device with predictable device_id
+            Device::firstOrCreate(
+                ['device_id' => $config['device_id']],
+                [
+                    'device_name' => $config['name'],
+                    'location' => $config['location'],
+                ]
+            );
+            
+            $this->command->info("✅ Device '{$config['name']}' created with device_id: {$config['device_id']}");
         }
 
-        $this->command->info("✅ Dummy monitoring data created: {$dataCount} records untuk device: {$device->device_name}");
+        $this->command->info("✅ Total 5 devices created (kosong)");
     }
 }

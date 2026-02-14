@@ -138,17 +138,35 @@
         }
 
         .alert {
-            border: none;
+            border: 1px solid;
             border-radius: 12px;
             margin-bottom: 25px;
             animation: slideInDown 0.4s ease-out;
             font-size: 14px;
+            padding: 16px 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .alert i {
+            font-size: 18px;
+            min-width: 24px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .alert strong {
+            font-weight: 700;
+            display: block;
+            margin-bottom: 8px;
         }
 
         .alert-danger {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-            color: white;
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.2);
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.08) 0%, rgba(192, 57, 43, 0.06) 100%);
+            color: #c0392b;
+            border-color: #e74c3c;
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.15);
         }
 
         .alert ul {
@@ -184,10 +202,19 @@
             border: 2px solid #e8ebed;
             border-radius: 10px;
             font-size: 14px;
-            transition: all 0.3s ease;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             background: #f8f9fa;
             color: #2d3436;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .form-group input::placeholder {
+            color: #b2bec3;
+            transition: color 0.3s ease;
+        }
+
+        .form-group input:focus::placeholder {
+            color: #95a5a6;
         }
 
         .form-group input:focus,
@@ -195,11 +222,27 @@
             outline: none;
             border-color: #667eea;
             background: white;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.12),
+                        0 0 0 8px rgba(102, 126, 234, 0.06),
+                        inset 0 2px 4px rgba(0, 0, 0, 0.02);
+            transform: translateY(-1px);
         }
 
-        .form-group input::placeholder {
-            color: #b2bec3;
+        .form-group input:hover:not(:focus),
+        .form-group select:hover:not(:focus) {
+            border-color: #d4d8db;
+            background: #fbfbfc;
+        }
+
+        .form-group input.is-invalid {
+            border-color: #e74c3c;
+            background-color: rgba(231, 76, 60, 0.02);
+        }
+
+        .form-group input.is-invalid:focus {
+            box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.12),
+                        0 0 0 8px rgba(231, 76, 60, 0.06);
+            border-color: #c0392b;
         }
 
         .form-row {
@@ -215,27 +258,50 @@
         .btn-register {
             width: 100%;
             padding: 13px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
             color: white;
             border: none;
             border-radius: 10px;
             font-weight: 700;
             font-size: 15px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             margin-top: 15px;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            letter-spacing: 1px;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-register::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-register:hover::before {
+            left: 100%;
         }
 
         .btn-register:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px rgba(102, 126, 234, 0.5), 0 0 20px rgba(240, 147, 251, 0.3);
         }
 
         .btn-register:active {
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-register:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .register-footer {
@@ -243,38 +309,71 @@
             margin-top: 20px;
             color: #636e72;
             font-size: 14px;
+            line-height: 1.6;
         }
 
         .register-footer a {
             color: #667eea;
             text-decoration: none;
             font-weight: 700;
-            transition: all 0.3s ease;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            display: inline;
+            padding-bottom: 2px;
+        }
+
+        .register-footer a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .register-footer a:hover {
             color: #764ba2;
-            text-decoration: underline;
+        }
+
+        .register-footer a:hover::after {
+            width: 100%;
         }
 
         .password-requirements {
-            background: rgba(102, 126, 234, 0.08);
-            border-left: 3px solid #667eea;
-            border-radius: 6px;
-            padding: 12px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-left: 4px solid #667eea;
+            border-radius: 12px;
+            padding: 14px 16px;
             margin-bottom: 20px;
             font-size: 12px;
             color: #636e72;
-            animation: slideInUp 0.8s ease-out;
+            animation: slideInUp 0.6s ease-out 0.1s both;
+            transition: all 0.3s ease;
+        }
+
+        .password-requirements:hover {
+            border-color: rgba(102, 126, 234, 0.35);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
         }
 
         .password-requirements-title {
             font-weight: 700;
             color: #667eea;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .password-requirements-title i {
+            font-size: 14px;
         }
 
         .password-requirements-list {
@@ -284,9 +383,15 @@
         }
 
         .password-requirements-list li {
-            padding: 3px 0;
+            padding: 4px 0;
             padding-left: 20px;
             position: relative;
+            transition: color 0.2s ease;
+        }
+
+        .password-requirements-list li:hover {
+            color: #667eea;
+            font-weight: 500;
         }
 
         .password-requirements-list li::before {
@@ -295,6 +400,7 @@
             left: 0;
             color: #51cf66;
             font-weight: bold;
+            font-size: 14px;
         }
 
         @media (max-width: 576px) {

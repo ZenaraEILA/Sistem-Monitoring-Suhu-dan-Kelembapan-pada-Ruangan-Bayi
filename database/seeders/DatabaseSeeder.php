@@ -25,6 +25,9 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        // Seed users (admin & petugas)
+        $this->call(UserSeeder::class);
+
         // Seed dummy monitoring data
         $this->call(MonitoringSeeder::class);
     }

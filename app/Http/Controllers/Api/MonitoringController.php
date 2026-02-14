@@ -117,4 +117,53 @@ class MonitoringController extends Controller
             'data' => $data,
         ], 200);
     }
+
+    /**
+     * Get hourly aggregated data for charts (real-time)
+     * 
+     * Query params:
+     * - device_id: ID device (required)
+     * - date: Tanggal (format: Y-m-d, default: today)
+     */
+    public function getHourlyChartData(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'device_id' => 'required|integer|exists:devices,id',
+            'date' => 'nullable|date_format:Y-m-d',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $deviceId = $request->device_id;
+        $date = $request->date ? \Carbon\Carbon::parse($request->date) : \Carbon\Carbon::today();
+
+        // Get hourly data from model
+        $hourlyData = Monitoring::getHourlyData($deviceId, $date);
+
+        // Format data untuk chart
+        $chartData = [
+            'hours' => $hourlyData->pluck('hour')->map(function ($hour) {
+                return str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
+            })->toArray(),
+            'avg_temperatures' => $hourlyData->pluck('avg_temp')->toArray(),
+            'max_temperatures' => $hourlyData->pluck('max_temp')->toArray(),
+            'min_temperatures' => $hourlyData->pluck('min_temp')->toArray(),
+            'avg_humidities' => $hourlyData->pluck('avg_humidity')->toArray(),
+            'max_humidities' => $hourlyData->pluck('max_humidity')->toArray(),
+            'min_humidities' => $hourlyData->pluck('min_humidity')->toArray(),
+            'timestamps' => $hourlyData->pluck('hour')->map(function ($hour) {
+                return (int) $hour;
+            })->toArray(),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'timestamp' => now()->toIso8601String(),
+            'date' => $date->format('Y-m-d'),
+            'device_id' => $deviceId,
+            'data' => $chartData,
+        ], 200);
+    }
 }

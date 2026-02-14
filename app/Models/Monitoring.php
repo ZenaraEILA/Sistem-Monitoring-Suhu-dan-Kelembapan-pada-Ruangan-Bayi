@@ -155,6 +155,8 @@ class Monitoring extends Model
             ->selectRaw('ROUND(AVG(humidity), 2) as avg_humidity')
             ->selectRaw('MAX(temperature) as max_temp')
             ->selectRaw('MIN(temperature) as min_temp')
+            ->selectRaw('MAX(humidity) as max_humidity')
+            ->selectRaw('MIN(humidity) as min_humidity')
             ->groupBy('hour')
             ->orderBy('hour')
             ->get();

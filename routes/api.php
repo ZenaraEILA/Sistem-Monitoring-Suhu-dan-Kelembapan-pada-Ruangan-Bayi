@@ -32,6 +32,13 @@ Route::middleware('api')->prefix('monitoring')->group(function () {
     Route::get('/dashboard/realtime', [MonitoringController::class, 'getRealtimeDashboard']);
 
     /**
+     * Get hourly chart data (real-time)
+     * 
+     * GET /api/monitoring/hourly-chart?device_id=1&date=2026-02-14
+     */
+    Route::get('/hourly-chart', [MonitoringController::class, 'getHourlyChartData']);
+
+    /**
      * Get latest monitoring data for a device
      * 
      * GET /api/monitoring/{deviceId}

@@ -242,7 +242,14 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts@latest/dist/apexcharts.min.js"></script>
 
 <script>
-    const chartData = @json($chartData);
+    // Initial chart data from server
+    let currentChartData = @json($chartData);
+    let hourlyChart = null;
+    let pollInterval = null;
+    
+    // Get selected device and date from page
+    const selectedDevice = "{{ $selectedDevice }}";
+    const selectedDate = "{{ $date }}";
     
     // Function to expand hourly data to 10-minute intervals
     function expandDataTo10Minutes(hourlyArray) {
@@ -283,240 +290,322 @@
         return labels;
     }
     
-    // Expand data to 10-minute intervals
-    const expandedTemps = expandDataTo10Minutes(chartData.avg_temperatures);
-    const expandedHumidities = expandDataTo10Minutes(chartData.avg_humidities);
-    const expandedMaxTemps = expandDataTo10Minutes(chartData.max_temperatures);
-    const expandedMinTemps = expandDataTo10Minutes(chartData.min_temperatures);
-    const labels10Min = generate10MinuteLabels();
-    
-    // Initialize hourly chart with ApexCharts
-    const hourlyChartOptions = {
-        chart: {
-            type: 'line',
-            height: 500,
-            stacked: false,
-            toolbar: {
-                show: true,
-                tools: {
-                    download: true,
-                    selection: true,
-                    zoom: true,
-                    zoomin: true,
-                    zoomout: true,
-                    pan: true,
-                    reset: true,
+    // Function to build chart options
+    function buildChartOptions() {
+        const labels10Min = generate10MinuteLabels();
+        
+        return {
+            chart: {
+                type: 'line',
+                height: 500,
+                stacked: false,
+                animations: {
+                    enabled: true,
+                    easing: 'linear',
+                    speed: 800,
+                    animateGradually: {
+                        enabled: true,
+                        delay: 150
+                    },
+                    dynamicAnimation: {
+                        enabled: true,
+                        speed: 150
+                    }
+                },
+                toolbar: {
+                    show: true,
+                    tools: {
+                        download: true,
+                        selection: true,
+                        zoom: true,
+                        zoomin: true,
+                        zoomout: true,
+                        pan: true,
+                        reset: true,
+                    }
+                },
+                zoom: {
+                    enabled: true,
+                    type: 'xy'
                 }
             },
-            zoom: {
-                enabled: true,
-                type: 'xy'
-            }
-        },
-        stroke: {
-            curve: 'smooth',
-            width: [3, 3, 2, 2],
-            dashArray: [0, 0, 5, 5]
-        },
-        plotOptions: {
-            bar: {
-                horizontal: false
-            }
-        },
-        fill: {
-            opacity: [0.15, 0.15, 0, 0],
-            type: ['gradient', 'gradient', 'solid', 'solid']
-        },
-        xaxis: {
-            categories: labels10Min,
-            labels: {
-                style: {
-                    fontSize: '10px'
-                },
-                rotateAlways: true,
-                rotate: 45,
-                hideOverlappingLabels: true,
-                showDuplicates: false
+            stroke: {
+                curve: 'smooth',
+                width: [3, 3, 2, 2],
+                dashArray: [0, 0, 5, 5]
             },
-            axisBorder: {
-                show: true
-            },
-            tickPlacement: 'on'
-        },
-        yaxis: [
-            {
-                seriesName: 'Rata-rata Suhu',
-                axisTicks: {
-                    show: true,
-                },
-                axisBorder: {
-                    show: true,
-                    color: '#dc3545'
-                },
-                labels: {
-                    style: {
-                        colors: '#dc3545',
-                        fontSize: '12px'
-                    },
-                    formatter: function(value) {
-                        return value.toFixed(1) + '°';
-                    }
-                },
-                title: {
-                    text: "Suhu (°C)",
-                    style: {
-                        color: '#dc3545',
-                        fontSize: '13px',
-                        fontWeight: 'bold'
-                    }
-                },
-                plotBands: [
-                    {
-                        from: -50,
-                        to: 15,
-                        color: 'rgba(220, 53, 69, 0.08)',
-                        label: {
-                            text: 'Terlalu Dingin'
-                        }
-                    },
-                    {
-                        from: 30,
-                        to: 50,
-                        color: 'rgba(220, 53, 69, 0.08)',
-                        label: {
-                            text: 'Terlalu Panas'
-                        }
-                    }
-                ],
-                min: 12,
-                max: 50,
-                tooltip: {
-                    enabled: true
+            plotOptions: {
+                bar: {
+                    horizontal: false
                 }
             },
-            {
-                seriesName: 'Kelembapan',
-                opposite: true,
-                axisTicks: {
-                    show: true,
-                },
-                axisBorder: {
-                    show: true,
-                    color: '#0dcaf0'
-                },
-                labels: {
-                    style: {
-                        colors: '#0dcaf0',
-                        fontSize: '12px'
-                    },
-                    formatter: function(value) {
-                        return value.toFixed(0) + '%';
-                    }
-                },
-                title: {
-                    text: "Kelembapan (%)",
-                    style: {
-                        color: '#0dcaf0',
-                        fontSize: '13px',
-                        fontWeight: 'bold'
-                    }
-                },
-                plotBands: [
-                    {
-                        from: 0,
-                        to: 35,
-                        color: 'rgba(13, 202, 240, 0.08)',
-                        label: {
-                            text: 'Terlalu Kering'
-                        }
-                    },
-                    {
-                        from: 60,
-                        to: 100,
-                        color: 'rgba(13, 202, 240, 0.08)',
-                        label: {
-                            text: 'Terlalu Lembap'
-                        }
-                    }
-                ],
-                min: 0,
-                max: 100,
-                tooltip: {
-                    enabled: true
-                }
-            }
-        ],
-        tooltip: {
-            shared: true,
-            intersect: false,
-            y: {
-                formatter: function(y, opts) {
-                    if (opts.seriesIndex === 0) {
-                        return y.toFixed(1) + '°C';
-                    } else if (opts.seriesIndex === 1) {
-                        return y.toFixed(0) + '%';
-                    } else if (opts.seriesIndex === 2) {
-                        return y.toFixed(1) + '° (Max)';
-                    } else if (opts.seriesIndex === 3) {
-                        return y.toFixed(1) + '° (Min)';
-                    }
-                    return y;
-                }
+            fill: {
+                opacity: [0.15, 0.15, 0, 0],
+                type: ['gradient', 'gradient', 'solid', 'solid']
             },
-            theme: 'dark',
-            style: {
-                fontSize: '12px'
-            }
-        },
-        legend: {
-            position: 'top',
-            horizontalAlign: 'right',
-            floating: false,
-            fontSize: '12px',
-            fontWeight: 'bold'
-        },
-        colors: ['#dc3545', '#0dcaf0', '#ff7f00', '#17a2b8'],
-        grid: {
-            borderColor: 'rgba(0, 0, 0, 0.1)',
-            strokeDashArray: 3,
             xaxis: {
-                lines: {
+                categories: labels10Min,
+                labels: {
+                    style: {
+                        fontSize: '10px'
+                    },
+                    rotateAlways: true,
+                    rotate: 45,
+                    hideOverlappingLabels: true,
+                    showDuplicates: false
+                },
+                axisBorder: {
                     show: true
+                },
+                tickPlacement: 'on'
+            },
+            yaxis: [
+                {
+                    seriesName: 'Rata-rata Suhu',
+                    axisTicks: {
+                        show: true,
+                    },
+                    axisBorder: {
+                        show: true,
+                        color: '#dc3545'
+                    },
+                    labels: {
+                        style: {
+                            colors: '#dc3545',
+                            fontSize: '12px'
+                        },
+                        formatter: function(value) {
+                            return value.toFixed(1) + '°';
+                        }
+                    },
+                    title: {
+                        text: "Suhu (°C)",
+                        style: {
+                            color: '#dc3545',
+                            fontSize: '13px',
+                            fontWeight: 'bold'
+                        }
+                    },
+                    plotBands: [
+                        {
+                            from: -50,
+                            to: 15,
+                            color: 'rgba(220, 53, 69, 0.08)',
+                            label: {
+                                text: 'Terlalu Dingin'
+                            }
+                        },
+                        {
+                            from: 30,
+                            to: 50,
+                            color: 'rgba(220, 53, 69, 0.08)',
+                            label: {
+                                text: 'Terlalu Panas'
+                            }
+                        }
+                    ],
+                    min: 12,
+                    max: 50,
+                    tooltip: {
+                        enabled: true
+                    }
+                },
+                {
+                    seriesName: 'Kelembapan',
+                    opposite: true,
+                    axisTicks: {
+                        show: true,
+                    },
+                    axisBorder: {
+                        show: true,
+                        color: '#0dcaf0'
+                    },
+                    labels: {
+                        style: {
+                            colors: '#0dcaf0',
+                            fontSize: '12px'
+                        },
+                        formatter: function(value) {
+                            return value.toFixed(0) + '%';
+                        }
+                    },
+                    title: {
+                        text: "Kelembapan (%)",
+                        style: {
+                            color: '#0dcaf0',
+                            fontSize: '13px',
+                            fontWeight: 'bold'
+                        }
+                    },
+                    plotBands: [
+                        {
+                            from: 0,
+                            to: 35,
+                            color: 'rgba(13, 202, 240, 0.08)',
+                            label: {
+                                text: 'Terlalu Kering'
+                            }
+                        },
+                        {
+                            from: 60,
+                            to: 100,
+                            color: 'rgba(13, 202, 240, 0.08)',
+                            label: {
+                                text: 'Terlalu Lembap'
+                            }
+                        }
+                    ],
+                    min: 0,
+                    max: 100,
+                    tooltip: {
+                        enabled: true
+                    }
+                }
+            ],
+            tooltip: {
+                shared: true,
+                intersect: false,
+                y: {
+                    formatter: function(y, opts) {
+                        if (opts.seriesIndex === 0) {
+                            return y.toFixed(1) + '°C';
+                        } else if (opts.seriesIndex === 1) {
+                            return y.toFixed(0) + '%';
+                        } else if (opts.seriesIndex === 2) {
+                            return y.toFixed(1) + '° (Max)';
+                        } else if (opts.seriesIndex === 3) {
+                            return y.toFixed(1) + '° (Min)';
+                        }
+                        return y;
+                    }
+                },
+                theme: 'dark',
+                style: {
+                    fontSize: '12px'
                 }
             },
-            yaxis: {
-                lines: {
-                    show: true
+            legend: {
+                position: 'top',
+                horizontalAlign: 'right',
+                floating: false,
+                fontSize: '12px',
+                fontWeight: 'bold'
+            },
+            colors: ['#dc3545', '#0dcaf0', '#ff7f00', '#17a2b8'],
+            grid: {
+                borderColor: 'rgba(0, 0, 0, 0.1)',
+                strokeDashArray: 3,
+                xaxis: {
+                    lines: {
+                        show: true
+                    }
+                },
+                yaxis: {
+                    lines: {
+                        show: true
+                    }
                 }
             }
+        };
+    }
+    
+    // Function to update chart with new data
+    function updateChart(newChartData) {
+        currentChartData = newChartData;
+        
+        // Expand data to 10-minute intervals
+        const expandedTemps = expandDataTo10Minutes(newChartData.avg_temperatures);
+        const expandedHumidities = expandDataTo10Minutes(newChartData.avg_humidities);
+        const expandedMaxTemps = expandDataTo10Minutes(newChartData.max_temperatures);
+        const expandedMinTemps = expandDataTo10Minutes(newChartData.min_temperatures);
+        
+        // Update chart series
+        if (hourlyChart) {
+            hourlyChart.updateSeries([
+                {
+                    name: 'Rata-rata Suhu',
+                    data: expandedTemps
+                },
+                {
+                    name: 'Kelembapan',
+                    data: expandedHumidities
+                },
+                {
+                    name: 'Suhu Max',
+                    data: expandedMaxTemps
+                },
+                {
+                    name: 'Suhu Min',
+                    data: expandedMinTemps
+                }
+            ], false);
         }
-    };
-
-    // Series data dengan expanded 10-minute intervals
-    const hourlyChartSeries = [
-        {
-            name: 'Rata-rata Suhu',
-            data: expandedTemps
-        },
-        {
-            name: 'Kelembapan',
-            data: expandedHumidities
-        },
-        {
-            name: 'Suhu Max',
-            data: expandedMaxTemps
-        },
-        {
-            name: 'Suhu Min',
-            data: expandedMinTemps
+    }
+    
+    // Function to fetch latest hourly data from API
+    function fetchLatestHourlyData() {
+        fetch(`/api/monitoring/hourly-chart?device_id=${selectedDevice}&date=${selectedDate}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateChart(data.data);
+                    console.log('✅ Chart updated at', new Date().toLocaleTimeString());
+                }
+            })
+            .catch(error => {
+                console.error('❌ Error fetching chart data:', error);
+            });
+    }
+    
+    // Initialize chart on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Build initial chart options and series
+        const chartOptions = buildChartOptions();
+        
+        // Expand initial data
+        const expandedTemps = expandDataTo10Minutes(currentChartData.avg_temperatures);
+        const expandedHumidities = expandDataTo10Minutes(currentChartData.avg_humidities);
+        const expandedMaxTemps = expandDataTo10Minutes(currentChartData.max_temperatures);
+        const expandedMinTemps = expandDataTo10Minutes(currentChartData.min_temperatures);
+        
+        // Create series
+        chartOptions.series = [
+            {
+                name: 'Rata-rata Suhu',
+                data: expandedTemps
+            },
+            {
+                name: 'Kelembapan',
+                data: expandedHumidities
+            },
+            {
+                name: 'Suhu Max',
+                data: expandedMaxTemps
+            },
+            {
+                name: 'Suhu Min',
+                data: expandedMinTemps
+            }
+        ];
+        
+        // Initialize chart
+        hourlyChart = new ApexCharts(document.querySelector("#hourlyChart"), chartOptions);
+        hourlyChart.render();
+        
+        console.log('📊 Hourly trend chart initialized');
+        
+        // Start polling for new data every 10 seconds
+        pollInterval = setInterval(fetchLatestHourlyData, 10000);
+        console.log('🔄 Real-time polling started (every 10 seconds)');
+    });
+    
+    // Cleanup when page unloads
+    window.addEventListener('beforeunload', function() {
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            console.log('🛑 Polling stopped');
         }
-    ];
-
-    hourlyChartOptions.series = hourlyChartSeries;
-
-    // Render chart
-    const hourlyChart = new ApexCharts(document.querySelector("#hourlyChart"), hourlyChartOptions);
-    hourlyChart.render();
+    });
 </script>
 
 <style>

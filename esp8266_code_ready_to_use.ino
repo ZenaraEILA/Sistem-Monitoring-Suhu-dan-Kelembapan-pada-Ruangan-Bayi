@@ -12,12 +12,12 @@ const char* ssid = "monitoring_suhu";           // ← EDIT: Ganti dengan SSID W
 const char* password = "11111111";   // ← EDIT: Ganti dengan password WiFi Anda
 
 // ============ KONFIGURASI API LARAVEL ============
-const char* serverIP = "192.168.2.102";  // ← EDIT: Ganti dengan IP komputer Anda (cek: ipconfig di CMD)
+const char* serverIP = "192.168.186.241";  // ← BENAR: IP server Laravel
 const int serverPort = 8000;           // Port Laravel (default: 8000)
 const char* apiEndpoint = "/api/monitoring/store"; // Endpoint API Laravel
 
 // ============ KONFIGURASI DEVICE ============
-const int deviceId = 2;                // ID device sesuai database Laravel
+const char* deviceId = "DEVICE_5VGP9BAM7C_1771067547";  // Device 2 = Ruangan B1 (unique device ID)
 const int sendInterval = 10000;        // Kirim data setiap 10 detik (dalam milidetik)
 
 // ============ DEKLARASI VARIABEL ============

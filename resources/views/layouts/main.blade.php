@@ -888,12 +888,11 @@
                         <div class="dropdown-menu dropdown-menu-end status-monitoring-dropdown" 
                              aria-labelledby="statusMonitoring">
                             
-                            <!-- Device Selector -->
+                            <!-- Device Selector - DYNAMIC -->
                             <div class="device-selector-group">
                                 <label class="device-selector-label">Device:</label>
                                 <select id="deviceSelector" class="device-selector-dropdown">
-                                    <option value="6">Ruangan A1</option>
-                                    <option value="7">Ruangan B1</option>
+                                    <option value="">Loading devices...</option>
                                 </select>
                             </div>
 
@@ -1097,11 +1096,14 @@
             espStatusText: null,
             deviceSelector: null,
             selectedDeviceId: null,
+            pollInterval: null,
+            deviceRefreshInterval: null,
 
             // Configuration
             config: {
                 apiEndpoint: '/api/monitoring/realtime/latest',
-                pollInterval: 1000, // 1 second
+                pollInterval: 1000, // 1 second for device data
+                deviceRefreshInterval: 30000, // 30 seconds to reload devices list
                 tempThresholds: {
                     normal: 30,
                     warning: 35
@@ -1113,22 +1115,58 @@
             init() {
                 this.cacheElements();
                 if (this.elementsCached()) {
-                    // Setup device selector listener
-                    if (this.deviceSelector) {
-                        this.deviceSelector.addEventListener('change', () => {
-                            this.selectedDeviceId = this.deviceSelector.value;
-                            console.log(`🔄 Device changed to: Ruang Bayi #${this.selectedDeviceId}`);
-                            this.fetchData(); // Fetch immediately on device change
-                        });
-                        // Set initial device
-                        this.selectedDeviceId = this.deviceSelector.value || '1';
-                    }
+                    // Load devices first, then setup selectors
+                    this.loadDevices().then(() => {
+                        // Setup device selector listener
+                        if (this.deviceSelector) {
+                            this.deviceSelector.addEventListener('change', () => {
+                                this.selectedDeviceId = this.deviceSelector.value;
+                                console.log(`🔄 Device changed to: ${this.deviceSelector.options[this.deviceSelector.selectedIndex].text}`);
+                                this.fetchData(); // Fetch immediately on device change
+                            });
+                            // Set initial device (first option)
+                            this.selectedDeviceId = this.deviceSelector.value || null;
+                        }
+                        
+                        // Fetch immediately
+                        this.fetchData();
+                        // Then poll every 1 second for device data
+                        this.pollInterval = setInterval(() => this.fetchData(), this.config.pollInterval);
+                        
+                        // Reload devices list every 30 seconds (auto-detect new devices)
+                        this.deviceRefreshInterval = setInterval(() => {
+                            this.loadDevices();
+                        }, this.config.deviceRefreshInterval);
+                        
+                        console.log('✅ Real-time indicators initialized with dynamic device selector');
+                    });
+                }
+            },
+
+            async loadDevices() {
+                try {
+                    const response = await fetch('/api/monitoring/devices');
+                    const data = await response.json();
                     
-                    // Fetch immediately
-                    this.fetchData();
-                    // Then poll every 1 second
-                    this.pollInterval = setInterval(() => this.fetchData(), this.config.pollInterval);
-                    console.log('✅ Real-time indicators initialized with device selector');
+                    if (data.success && data.data && data.data.length > 0) {
+                        // Clear existing options except the first one
+                        this.deviceSelector.innerHTML = '';
+                        
+                        // Populate dropdown dengan devices dari API
+                        data.data.forEach(device => {
+                            const option = document.createElement('option');
+                            option.value = device.id;
+                            option.textContent = device.device_name;
+                            option.dataset.location = device.location;
+                            this.deviceSelector.appendChild(option);
+                        });
+                        
+                        console.log(`✅ Loaded ${data.data.length} devices from API`);
+                    } else {
+                        console.warn('⚠️ No devices found');
+                    }
+                } catch (error) {
+                    console.error('❌ Error loading devices:', error);
                 }
             },
 
@@ -1264,7 +1302,11 @@
             destroy() {
                 if (this.pollInterval) {
                     clearInterval(this.pollInterval);
-                    console.log('🛑 Real-time indicators stopped');
+                    console.log('🛑 Real-time data polling stopped');
+                }
+                if (this.deviceRefreshInterval) {
+                    clearInterval(this.deviceRefreshInterval);
+                    console.log('🛑 Device list refresh stopped');
                 }
             }
         };

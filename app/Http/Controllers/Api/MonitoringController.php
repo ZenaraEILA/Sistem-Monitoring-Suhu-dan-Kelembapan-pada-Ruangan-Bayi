@@ -513,4 +513,35 @@ class MonitoringController extends Controller
             ]
         ], 200);
     }
+
+    /**
+     * Get semua devices yang tersedia
+     * Digunakan untuk auto-populate device selector di dropdown
+     * Akan otomatis menambah device baru ketika created
+     * 
+     * GET /api/monitoring/devices
+     * 
+     * Response:
+     * {
+     *   "success": true,
+     *   "data": [
+     *     {
+     *       "id": 1,
+     *       "device_id": "DEVICE_ABC123",
+     *       "device_name": "Ruangan A1",
+     *       "location": "Lantai 1"
+     *     },
+     *     ...
+     *   ]
+     * }
+     */
+    public function getAllDevices()
+    {
+        $devices = Device::all(['id', 'device_name', 'location', 'device_id']);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $devices,
+        ], 200);
+    }
 }

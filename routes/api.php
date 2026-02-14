@@ -40,6 +40,14 @@ Route::middleware('api')->prefix('monitoring')->group(function () {
     Route::get('/realtime/latest', [MonitoringController::class, 'getRealtimeLatest']);
 
     /**
+     * Get all devices untuk auto-populate device selector
+     * Endpoint ini akan otomatis menampilkan device baru yang ditambahkan
+     * 
+     * GET /api/monitoring/devices
+     */
+    Route::get('/devices', [MonitoringController::class, 'getAllDevices']);
+
+    /**
      * Get hourly chart data (real-time)
      * OPSI LAMA: Selalu 24 jam penuh
      * 

@@ -252,48 +252,12 @@
     const selectedDate = "{{ $date }}";
     
     // Function to expand hourly data to 10-minute intervals
-    function expandDataTo10Minutes(hourlyArray) {
-        const expanded = [];
-        for (let i = 0; i < hourlyArray.length; i++) {
-            expanded.push(hourlyArray[i]); // Add main point
-            
-            // Add intermediate points (6 points per hour)
-            if (i < hourlyArray.length - 1) {
-                const current = parseFloat(hourlyArray[i]);
-                const next = parseFloat(hourlyArray[i + 1]);
-                
-                // Linear interpolation for 5 intermediate points
-                for (let j = 1; j < 6; j++) {
-                    const interpolated = current + (next - current) * (j / 6);
-                    expanded.push(parseFloat(interpolated.toFixed(2)));
-                }
-            } else {
-                // For last hour, add intermediate points with same value
-                for (let j = 1; j < 6; j++) {
-                    expanded.push(hourlyArray[i]);
-                }
-            }
-        }
-        return expanded;
-    }
+    // ✅ OPSI 1: Tidak perlu expand ke 10-minute intervals
+    // Data ditampilkan langsung sebagai hourly data
+    // Label dinamis dari jam yang benar-benar ada data
     
-    // Function to generate 10-minute labels for 24 hours
-    function generate10MinuteLabels() {
-        const labels = [];
-        for (let hour = 0; hour < 24; hour++) {
-            for (let minute = 0; minute < 60; minute += 10) {
-                const hourStr = String(hour).padStart(2, '0');
-                const minStr = String(minute).padStart(2, '0');
-                labels.push(`${hourStr}:${minStr}`);
-            }
-        }
-        return labels;
-    }
-    
-    // Function to build chart options
-    function buildChartOptions() {
-        const labels10Min = generate10MinuteLabels();
-        
+    // ✅ PERUBAHAN: Build chart options dengan DYNAMIC labels (OPSI 1: Real-time murni)
+    function buildDynamicChartOptions(chartData) {
         return {
             chart: {
                 type: 'line',
@@ -344,13 +308,12 @@
                 type: ['gradient', 'gradient', 'solid', 'solid']
             },
             xaxis: {
-                categories: labels10Min,
+                categories: chartData.labels,  // ✅ DYNAMIC: Hanya jam yang ada data
                 labels: {
                     style: {
-                        fontSize: '10px'
+                        fontSize: '12px'
                     },
-                    rotateAlways: true,
-                    rotate: 45,
+                    rotateAlways: false,
                     hideOverlappingLabels: true,
                     showDuplicates: false
                 },
@@ -509,47 +472,41 @@
         };
     }
     
-    // Function to update chart with new data
+    // Function to update chart with new data (✅ OPSI 1: Direct, tanpa interpolasi)
     function updateChart(newChartData) {
-        currentChartData = newChartData;
-        
-        // Expand data to 10-minute intervals
-        const expandedTemps = expandDataTo10Minutes(newChartData.avg_temperatures);
-        const expandedHumidities = expandDataTo10Minutes(newChartData.avg_humidities);
-        const expandedMaxTemps = expandDataTo10Minutes(newChartData.max_temperatures);
-        const expandedMinTemps = expandDataTo10Minutes(newChartData.min_temperatures);
-        
-        // Update chart series
         if (hourlyChart) {
             hourlyChart.updateSeries([
                 {
                     name: 'Rata-rata Suhu',
-                    data: expandedTemps
+                    data: newChartData.avg_temperatures  // ✅ Direct data
                 },
                 {
                     name: 'Kelembapan',
-                    data: expandedHumidities
+                    data: newChartData.avg_humidities
                 },
                 {
                     name: 'Suhu Max',
-                    data: expandedMaxTemps
+                    data: newChartData.max_temperatures
                 },
                 {
                     name: 'Suhu Min',
-                    data: expandedMinTemps
+                    data: newChartData.min_temperatures
                 }
             ], false);
         }
     }
     
-    // Function to fetch latest hourly data from API
+    // Function to fetch latest hourly data from API (✅ OPSI 1: Dynamic endpoint)
     function fetchLatestHourlyData() {
-        fetch(`/api/monitoring/hourly-chart?device_id=${selectedDevice}&date=${selectedDate}`)
+        // ✅ PERUBAHAN: Gunakan /dynamic endpoint
+        fetch(`/api/monitoring/hourly-chart/dynamic?device_id=${selectedDevice}&date=${selectedDate}`)
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
+                if (data.success && data.data.data_count > 0) {
                     updateChart(data.data);
                     console.log('✅ Chart updated at', new Date().toLocaleTimeString());
+                    console.log(`📊 Data range: ${data.data.first_data_time} → ${data.data.last_data_time}`);
+                    console.log(`📈 Data points: ${data.data.data_count} jam (OPSI 1: Real-time murni)`);
                 }
             })
             .catch(error => {

@@ -168,6 +168,116 @@ class MonitoringController extends Controller
     }
 
     /**
+     * Get hourly chart data V2 - DYNAMIC (OPSI 1: Real-time murni, no padding)
+     * Hanya menampilkan jam yang memiliki data
+     * Tidak ada nilai 0 sebelum/sesudah data pertama masuk
+     * 
+     * Query params:
+     * - device_id: ID device (required)
+     * - date: Tanggal (format: Y-m-d, default: today)
+     * 
+     * Response: 
+     * {
+     *   "success": true,
+     *   "data": {
+     *     "start_hour": 8,
+     *     "end_hour": 16,
+     *     "first_data_time": "2026-02-14T08:15:22+07:00",
+     *     "last_data_time": "2026-02-14T16:45:10+07:00",
+     *     "hours": [8, 9, 10, ...],
+     *     "labels": ["08:00", "09:00", ...],
+     *     "avg_temperatures": [27.5, 28.2, ...],
+     *     "max_temperatures": [29.5, 30.2, ...],
+     *     "min_temperatures": [25.5, 26.2, ...],
+     *     "avg_humidities": [55, 58, ...],
+     *   }
+     * }
+     */
+    public function getHourlyChartDataDynamic(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'device_id' => 'required|integer|exists:devices,id',
+            'date' => 'nullable|date_format:Y-m-d',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $deviceId = $request->device_id;
+        $date = $request->date ? \Carbon\Carbon::parse($request->date) : \Carbon\Carbon::today();
+
+        // Get hourly data from model
+        $hourlyData = Monitoring::getHourlyData($deviceId, $date);
+
+        // Jika tidak ada data, return empty
+        if ($hourlyData->isEmpty()) {
+            return response()->json([
+                'success' => true,
+                'timestamp' => now()->toIso8601String(),
+                'date' => $date->format('Y-m-d'),
+                'device_id' => $deviceId,
+                'data' => [
+                    'start_hour' => null,
+                    'end_hour' => null,
+                    'first_data_time' => null,
+                    'last_data_time' => null,
+                    'data_count' => 0,
+                    'hours' => [],
+                    'labels' => [],
+                    'avg_temperatures' => [],
+                    'max_temperatures' => [],
+                    'min_temperatures' => [],
+                    'avg_humidities' => [],
+                    'max_humidities' => [],
+                    'min_humidities' => [],
+                ]
+            ], 200);
+        }
+
+        // Get time range info
+        $firstData = Monitoring::where('device_id', $deviceId)
+            ->whereDate('recorded_at', $date)
+            ->oldest('recorded_at')
+            ->first();
+        
+        $lastData = Monitoring::where('device_id', $deviceId)
+            ->whereDate('recorded_at', $date)
+            ->latest('recorded_at')
+            ->first();
+
+        $startHour = $firstData ? $firstData->recorded_at->hour : 0;
+        $endHour = $lastData ? $lastData->recorded_at->hour : 0;
+
+        // Format data untuk chart (HANYA jam yang ada data)
+        $chartData = [
+            'start_hour' => (int) $startHour,
+            'end_hour' => (int) $endHour,
+            'first_data_time' => $firstData ? $firstData->recorded_at->toIso8601String() : null,
+            'last_data_time' => $lastData ? $lastData->recorded_at->toIso8601String() : null,
+            'data_count' => count($hourlyData),
+            'hours' => $hourlyData->pluck('hour')->map(fn($h) => (int) $h)->toArray(),
+            'labels' => $hourlyData->pluck('hour')->map(function ($hour) {
+                return str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00';
+            })->toArray(),
+            'avg_temperatures' => $hourlyData->pluck('avg_temp')->toArray(),
+            'max_temperatures' => $hourlyData->pluck('max_temp')->toArray(),
+            'min_temperatures' => $hourlyData->pluck('min_temp')->toArray(),
+            'avg_humidities' => $hourlyData->pluck('avg_humidity')->toArray(),
+            'max_humidities' => $hourlyData->pluck('max_humidity')->toArray(),
+            'min_humidities' => $hourlyData->pluck('min_humidity')->toArray(),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'timestamp' => now()->toIso8601String(),
+            'date' => $date->format('Y-m-d'),
+            'device_id' => $deviceId,
+            'data' => $chartData,
+        ], 200);
+    }
+
+    /**
      * Get real-time latest monitoring data for live dashboard
      * Update setiap 1 detik dengan status ESP online/offline
      * 

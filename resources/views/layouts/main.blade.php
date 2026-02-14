@@ -269,12 +269,26 @@
         }
     </style>
     
-    @yield('css')
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white">
-        <div class="container-fluid">
+    <!-- ESP Connection Alerts (MASALAH 2: Notifikasi global untuk semua halaman) -->
+    <div id="espConnectedAlert" class="alert alert-success alert-dismissible fade show d-none" role="alert" style="position: fixed; top: 80px; right: 20px; z-index: 1050; width: 300px;">
+        <i class="fas fa-check-circle me-2"></i> <strong>✅ Koneksi ESP Berhasil!</strong>
+        <p class="mb-0 mt-2">ESP8266 telah terhubung dan mulai mengirim data monitoring.</p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    
+    <div id="espDisconnectedAlert" class="alert alert-danger alert-dismissible fade show d-none" role="alert" style="position: fixed; top: 80px; right: 20px; z-index: 1050; width: 300px;">
+        <i class="fas fa-exclamation-triangle me-2"></i> <strong>⚠️ ESP Putus Koneksi!</strong>
+        <p class="mb-0 mt-2">ESP8266 tidak merespons dalam 5+ detik. Periksa koneksi WiFi atau power supply.</p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    
+    <!-- Container utama -->
+    <div class="container-fluid">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-white">
+            <div class="container-fluid">
             <a class="navbar-brand" href="{{ route('dashboard') }}">
                 <i class="fas fa-heartbeat text-primary"></i> Monitoring Bayi
             </a>
@@ -440,8 +454,116 @@
         }
         
         // Update clock every 1000ms (1 second)
-        updateClock(); // Initial call
+        updateClock();
         setInterval(updateClock, 1000);
+        
+        // ========== GLOBAL REAL-TIME INDICATORS (MASALAH 2: INDIKATOR DI SEMUA HALAMAN) ==========
+        // Script ini berjalan di SEMUA halaman yang extends layouts.main
+        // Indikator di navbar tetap update real-time: 🌡 Suhu | 💧 Kelembapan | 📡 ESP Status
+        
+        let globalPollInterval = null;
+        let lastEspStatus = null;
+        
+        function fetchRealtimeIndicators() {
+            fetch('/api/monitoring/realtime/latest')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data && data.data.length > 0) {
+                        const device = data.data[0];  // Device utama
+                        updateNavbarIndicators(device);
+                    }
+                })
+                .catch(error => console.error('Error fetching indicators:', error));
+        }
+        
+        function updateNavbarIndicators(device) {
+            // === UPDATE TEMPERATURE INDICATOR ===
+            const tempIndicator = document.getElementById('tempIndicator');
+            const tempValue = document.getElementById('tempValue');
+            
+            if (tempIndicator && tempValue && device.temperature !== null) {
+                tempValue.textContent = device.temperature.toFixed(1);
+                
+                // Set color based on status
+                if (device.temp_status === 'danger') {
+                    tempIndicator.style.backgroundColor = '#dc3545';  // Merah
+                    tempIndicator.classList.add('blinking-fast');
+                } else if (device.temp_status === 'warning') {
+                    tempIndicator.style.backgroundColor = '#ffc107';  // Kuning
+                    tempIndicator.classList.remove('blinking-fast');
+                } else {
+                    tempIndicator.style.backgroundColor = '#28a745';  // Hijau
+                    tempIndicator.classList.remove('blinking-fast');
+                }
+            }
+            
+            // === UPDATE HUMIDITY INDICATOR ===
+            const humidityIndicator = document.getElementById('humidityIndicator');
+            const humidityValue = document.getElementById('humidityValue');
+            
+            if (humidityIndicator && humidityValue && device.humidity !== null) {
+                humidityValue.textContent = Math.round(device.humidity);
+                
+                // Set color based on status
+                if (device.humidity_status === 'warning') {
+                    humidityIndicator.style.backgroundColor = '#ff9800';  // Orange
+                    humidityIndicator.classList.remove('blinking-fast');
+                } else {
+                    humidityIndicator.style.backgroundColor = '#0dcaf0';  // Biru
+                    humidityIndicator.classList.remove('blinking-fast');
+                }
+            }
+            
+            // === UPDATE ESP STATUS INDICATOR ===
+            const espIndicator = document.getElementById('espIndicator');
+            const espStatus = document.getElementById('espStatus');
+            const espConnectedAlert = document.getElementById('espConnectedAlert');
+            const espDisconnectedAlert = document.getElementById('espDisconnectedAlert');
+            
+            if (espIndicator && espStatus) {
+                if (device.esp_online) {
+                    // ESP ONLINE - merah berkedip
+                    espIndicator.style.backgroundColor = '#dc3545';
+                    espIndicator.classList.add('blinking-fast');
+                    espStatus.textContent = 'ONLINE';
+                    
+                    // Show connected notification (hanya sekali)
+                    if (lastEspStatus !== true && espConnectedAlert) {
+                        espConnectedAlert.classList.remove('d-none');
+                        setTimeout(() => espConnectedAlert.classList.add('d-none'), 3000);
+                    }
+                } else {
+                    // ESP OFFLINE - abu-abu mati
+                    espIndicator.style.backgroundColor = '#6c757d';
+                    espIndicator.classList.remove('blinking-fast');
+                    espStatus.textContent = 'OFFLINE';
+                    
+                    // Show disconnected notification (persistent)
+                    if (lastEspStatus !== false && espDisconnectedAlert) {
+                        espDisconnectedAlert.classList.remove('d-none');
+                    }
+                }
+                lastEspStatus = device.esp_online;
+            }
+        }
+        
+        // Initialize global polling saat document ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch indicator data immediately
+            fetchRealtimeIndicators();
+            
+            // Start polling setiap 1 detik untuk update indicators
+            globalPollInterval = setInterval(fetchRealtimeIndicators, 1000);
+            console.log('✅ Global real-time indicators started (MASALAH 2: FIX)');
+            console.log('📍 Running on all pages that extend layouts.main');
+        });
+        
+        // Cleanup when page unloads
+        window.addEventListener('beforeunload', function() {
+            if (globalPollInterval) {
+                clearInterval(globalPollInterval);
+            }
+        });
     </script>
     
     @yield('js')

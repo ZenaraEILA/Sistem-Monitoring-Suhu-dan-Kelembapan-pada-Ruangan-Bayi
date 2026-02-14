@@ -41,10 +41,19 @@ Route::middleware('api')->prefix('monitoring')->group(function () {
 
     /**
      * Get hourly chart data (real-time)
+     * OPSI LAMA: Selalu 24 jam penuh
      * 
      * GET /api/monitoring/hourly-chart?device_id=1&date=2026-02-14
      */
     Route::get('/hourly-chart', [MonitoringController::class, 'getHourlyChartData']);
+
+    /**
+     * Get hourly chart data DYNAMIC (OPSI BARU 1 - Real-time murni)
+     * Hanya jam yang memiliki data, NO padding 00:00
+     * 
+     * GET /api/monitoring/hourly-chart/dynamic?device_id=1&date=2026-02-14
+     */
+    Route::get('/hourly-chart/dynamic', [MonitoringController::class, 'getHourlyChartDataDynamic']);
 
     /**
      * Get latest monitoring data for a device

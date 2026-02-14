@@ -32,6 +32,14 @@ Route::middleware('api')->prefix('monitoring')->group(function () {
     Route::get('/dashboard/realtime', [MonitoringController::class, 'getRealtimeDashboard']);
 
     /**
+     * Get real-time latest data for live indicators (update every 1 detik)
+     * 
+     * GET /api/monitoring/realtime/latest
+     * Response: Device data dengan ESP status (ONLINE < 5sec, OFFLINE >= 5sec)
+     */
+    Route::get('/realtime/latest', [MonitoringController::class, 'getRealtimeLatest']);
+
+    /**
      * Get hourly chart data (real-time)
      * 
      * GET /api/monitoring/hourly-chart?device_id=1&date=2026-02-14

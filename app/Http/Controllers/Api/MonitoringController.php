@@ -166,4 +166,78 @@ class MonitoringController extends Controller
             'data' => $chartData,
         ], 200);
     }
+
+    /**
+     * Get real-time latest monitoring data for live dashboard
+     * Update setiap 1 detik dengan status ESP online/offline
+     * 
+     * GET /api/monitoring/realtime/latest
+     */
+    public function getRealtimeLatest()
+    {
+        $devices = Device::with(['monitorings' => function ($query) {
+            $query->latest('recorded_at')->limit(1);
+        }])->get();
+
+        $data = [];
+        foreach ($devices as $device) {
+            $latestMonitoring = $device->monitorings->first();
+            
+            // ESP Status: ONLINE jika last update < 5 detik, OFFLINE jika >= 5 detik
+            $isOnline = false;
+            $lastUpdateTime = null;
+            $secondsAgo = null;
+            $statusMessage = 'OFFLINE';
+            
+            if ($latestMonitoring) {
+                $lastUpdateTime = $latestMonitoring->recorded_at;
+                $secondsAgo = now()->diffInSeconds($lastUpdateTime);
+                $isOnline = $secondsAgo < 5; // Online jika < 5 detik
+                $statusMessage = $isOnline ? 'ONLINE' : 'OFFLINE';
+            }
+
+            // Determine status warna untuk temperature & humidity
+            $tempStatus = 'safe';  // hijau
+            $humidityStatus = 'safe'; // biru
+            
+            if ($latestMonitoring) {
+                if ($latestMonitoring->temperature >= 30) {
+                    $tempStatus = 'warning'; // kuning
+                }
+                if ($latestMonitoring->temperature > 35) {
+                    $tempStatus = 'danger'; // merah
+                }
+                
+                if ($latestMonitoring->humidity >= 60) {
+                    $humidityStatus = 'warning'; // orange
+                }
+            }
+
+            $data[] = [
+                'id' => $device->id,
+                'device_id' => $device->device_id,
+                'device_name' => $device->device_name,
+                'location' => $device->location,
+                // Temperature data
+                'temperature' => $latestMonitoring ? $latestMonitoring->temperature : null,
+                'temp_status' => $tempStatus, // safe, warning, danger
+                // Humidity data
+                'humidity' => $latestMonitoring ? $latestMonitoring->humidity : null,
+                'humidity_status' => $humidityStatus, // safe, warning
+                // ESP Status
+                'esp_online' => $isOnline,
+                'esp_status' => $statusMessage,
+                'seconds_ago' => $secondsAgo,
+                'last_update' => $lastUpdateTime ? $lastUpdateTime->toIso8601String() : null,
+                // Overall monitoring status
+                'monitoring_status' => $latestMonitoring ? $latestMonitoring->status : null,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'timestamp' => now()->toIso8601String(),
+            'data' => $data,
+        ], 200);
+    }
 }

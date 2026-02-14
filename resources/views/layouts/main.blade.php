@@ -194,6 +194,80 @@
             }
         }
     </style>
+
+    <!-- Real-Time Indicators CSS -->
+    <style>
+        /* Indicator Light Styles */
+        .indicator-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+
+        .indicator-light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px currentColor;
+            animation: blink 1s infinite;
+        }
+
+        .indicator-light.pulse {
+            animation: pulse 1s infinite;
+        }
+
+        .indicator-light.blinking-fast {
+            animation: blink-fast 0.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 49% {
+                opacity: 1;
+            }
+            50%, 100% {
+                opacity: 0.3;
+            }
+        }
+
+        @keyframes blink-fast {
+            0%, 40% {
+                opacity: 1;
+            }
+            60%, 100% {
+                opacity: 0.2;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 8px currentColor;
+            }
+            50% {
+                box-shadow: 0 0 16px currentColor;
+            }
+        }
+
+        .indicator-light.offline {
+            background-color: #6c757d !important;
+            opacity: 0.5 !important;
+            animation: none !important;
+            box-shadow: none !important;
+        }
+
+        .indicator-light.online {
+            background-color: #dc3545;
+            animation: blink 1s infinite;
+        }
+
+        /* Hover effect untuk tooltip */
+        .indicator-group {
+            cursor: help;
+        }
+    </style>
     
     @yield('css')
 </head>
@@ -209,6 +283,31 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <!-- Real-Time Status Indicators -->
+                    <li class="nav-item me-3 d-flex align-items-center">
+                        <!-- Temperature Indicator (berkedip) -->
+                        <div class="indicator-group me-2" title="Status Suhu">
+                            <span class="indicator-light" id="tempIndicator" style="background-color: #28a745;"></span>
+                            <small class="ms-1">🌡 <span id="tempValue">-</span>°C</small>
+                        </div>
+                    </li>
+                    
+                    <li class="nav-item me-3 d-flex align-items-center">
+                        <!-- Humidity Indicator (berkedip) -->
+                        <div class="indicator-group me-2" title="Status Kelembapan">
+                            <span class="indicator-light" id="humidityIndicator" style="background-color: #0dcaf0;"></span>
+                            <small class="ms-1">💧 <span id="humidityValue">-</span>%</small>
+                        </div>
+                    </li>
+                    
+                    <li class="nav-item me-3 d-flex align-items-center">
+                        <!-- ESP Status Online/Offline -->
+                        <div class="indicator-group me-2" title="Status Koneksi ESP8266">
+                            <span class="indicator-light" id="espIndicator" style="background-color: #6c757d;"></span>
+                            <small class="ms-1">📡 <span id="espStatus">OFFLINE</span></small>
+                        </div>
+                    </li>
+                    
                     <li class="nav-item me-3 d-flex align-items-center">
                         <div class="clock-display">
                             <i class="fas fa-clock me-2"></i>

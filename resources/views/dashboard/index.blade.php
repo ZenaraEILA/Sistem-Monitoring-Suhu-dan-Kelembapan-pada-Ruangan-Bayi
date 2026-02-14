@@ -606,5 +606,210 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ============================================
+// REAL-TIME MONITORING (Update setiap 1 detik)
+// ============================================
+
+let realtimePollInterval = null;
+let lastEspStatus = null;
+let espConnectedShown = false;
+let espDisconnectedShown = false;
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Real-time monitoring started...');
+    
+    // Start polling setiap 1 detik
+    realtimePollInterval = setInterval(fetchRealtimeData, 1000);
+    
+    // Fetch immediately on load
+    fetchRealtimeData();
+    
+    console.log('✅ Real-time polling initialized (every 1 second)');
+});
+
+/**
+ * Fetch latest real-time data dari API
+ */
+function fetchRealtimeData() {
+    fetch('/api/monitoring/realtime/latest')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data.length > 0) {
+                const firstDevice = data.data[0];
+                updateIndicators(firstDevice);
+                updateDeviceCards(data.data);
+                updateEspStatus(firstDevice);
+            }
+        })
+        .catch(error => {
+            console.error('❌ Error fetching realtime data:', error);
+        });
+}
+
+/**
+ * Update navbar indicator lights
+ */
+function updateIndicators(device) {
+    const tempIndicator = document.getElementById('tempIndicator');
+    const tempValue = document.getElementById('tempValue');
+    
+    if (device.temperature !== null) {
+        tempValue.textContent = device.temperature.toFixed(1);
+        
+        if (device.temp_status === 'danger') {
+            tempIndicator.style.backgroundColor = '#dc3545';
+        } else if (device.temp_status === 'warning') {
+            tempIndicator.style.backgroundColor = '#ffc107';
+        } else {
+            tempIndicator.style.backgroundColor = '#28a745';
+        }
+        tempIndicator.classList.add('blinking-fast');
+    }
+    
+    const humidityIndicator = document.getElementById('humidityIndicator');
+    const humidityValue = document.getElementById('humidityValue');
+    
+    if (device.humidity !== null) {
+        humidityValue.textContent = Math.round(device.humidity);
+        
+        if (device.humidity_status === 'warning') {
+            humidityIndicator.style.backgroundColor = '#ff9800';
+        } else {
+            humidityIndicator.style.backgroundColor = '#0dcaf0';
+        }
+        humidityIndicator.classList.add('blinking-fast');
+    }
+}
+
+/**
+ * Update ESP status indicator
+ */
+function updateEspStatus(device) {
+    const espIndicator = document.getElementById('espIndicator');
+    const espStatus = document.getElementById('espStatus');
+    const espConnectedAlert = document.getElementById('espConnectedAlert');
+    const espDisconnectedAlert = document.getElementById('espDisconnectedAlert');
+    
+    if (device.esp_online) {
+        espIndicator.style.backgroundColor = '#dc3545';
+        espIndicator.classList.add('online');
+        espIndicator.classList.remove('offline');
+        espStatus.textContent = 'ONLINE';
+        
+        if (lastEspStatus !== true && !espConnectedShown) {
+            espConnectedAlert.classList.remove('d-none');
+            setTimeout(() => {
+                espConnectedAlert.classList.add('d-none');
+            }, 3000);
+            espConnectedShown = true;
+            espDisconnectedShown = false;
+            console.log('✅ ESP8266 TERHUBUNG');
+        }
+    } else {
+        espIndicator.style.backgroundColor = '#6c757d';
+        espIndicator.classList.remove('online');
+        espIndicator.classList.add('offline');
+        espStatus.textContent = '❌ OFFLINE';
+        
+        if (lastEspStatus !== false && !espDisconnectedShown) {
+            espDisconnectedAlert.classList.remove('d-none');
+            console.log('⚠️ ESP8266 TIDAK TERHUBUNG');
+            espDisconnectedShown = true;
+            espConnectedShown = false;
+        }
+    }
+    
+    lastEspStatus = device.esp_online;
+}
+
+/**
+ * Update device cards
+ */
+function updateDeviceCards(devices) {
+    devices.forEach(device => {
+        const deviceCard = document.querySelector(`[data-device-id="${device.id}"]`);
+        
+        if (!deviceCard) return;
+        
+        const tempElement = deviceCard.querySelector('.device-temp-value');
+        if (tempElement && device.temperature !== null) {
+            tempElement.textContent = device.temperature.toFixed(1);
+            const tempDisplay = deviceCard.querySelector('.device-temperature');
+            if (device.temperature < 15 || device.temperature > 30) {
+                tempDisplay.classList.add('text-danger');
+                tempDisplay.classList.remove('text-success');
+            } else {
+                tempDisplay.classList.add('text-success');
+                tempDisplay.classList.remove('text-danger');
+            }
+        }
+        
+        const humidityElement = deviceCard.querySelector('.device-humidity-value');
+        if (humidityElement && device.humidity !== null) {
+            humidityElement.textContent = device.humidity.toFixed(0);
+            const humidityDisplay = deviceCard.querySelector('.device-humidity');
+            if (device.humidity < 35 || device.humidity > 60) {
+                humidityDisplay.classList.add('text-warning');
+                humidityDisplay.classList.remove('text-info');
+            } else {
+                humidityDisplay.classList.add('text-info');
+                humidityDisplay.classList.remove('text-warning');
+            }
+        }
+        
+        const statusBadge = deviceCard.querySelector('.device-status-badge');
+        if (statusBadge && device.monitoring_status) {
+            statusBadge.textContent = device.monitoring_status;
+            if (device.monitoring_status === 'Aman') {
+                statusBadge.classList.add('badge-success');
+                statusBadge.classList.remove('badge-danger');
+            } else {
+                statusBadge.classList.add('badge-danger');
+                statusBadge.classList.remove('badge-success');
+            }
+        }
+        
+        const lastUpdateElement = deviceCard.querySelector('.device-last-update');
+        if (lastUpdateElement && device.seconds_ago !== null) {
+            if (device.seconds_ago < 60) {
+                lastUpdateElement.textContent = `${device.seconds_ago} detik lalu`;
+            } else {
+                lastUpdateElement.textContent = `${Math.floor(device.seconds_ago / 60)} menit lalu`;
+            }
+            
+            if (device.seconds_ago < 5) {
+                lastUpdateElement.classList.add('text-success');
+                lastUpdateElement.classList.remove('text-warning', 'text-danger');
+            } else if (device.seconds_ago < 30) {
+                lastUpdateElement.classList.add('text-warning');
+                lastUpdateElement.classList.remove('text-success', 'text-danger');
+            } else {
+                lastUpdateElement.classList.add('text-danger');
+                lastUpdateElement.classList.remove('text-success', 'text-warning');
+            }
+        }
+        
+        const connectionIcon = deviceCard.querySelector('.device-connection-icon');
+        const connectionStatus = deviceCard.querySelector('.device-connection-status');
+        
+        if (connectionIcon && connectionStatus) {
+            if (device.esp_online) {
+                connectionIcon.style.color = '#28a745';
+                connectionStatus.textContent = 'TERHUBUNG';
+            } else {
+                connectionIcon.style.color = '#dc3545';
+                connectionStatus.textContent = 'TIDAK TERHUBUNG';
+            }
+        }
+    });
+}
+
+window.addEventListener('beforeunload', function() {
+    if (realtimePollInterval) {
+        clearInterval(realtimePollInterval);
+        console.log('🛑 Real-time polling stopped');
+    }
+});
 </script>
 @endsection

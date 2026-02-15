@@ -15,6 +15,7 @@ use App\Http\Controllers\PrintController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\HelpController;
 
 /**
  * Auth Routes
@@ -32,6 +33,10 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+
+    // Help & Guide
+    Route::get('/help', [HelpController::class, 'index'])->name('help.index');
+    Route::get('/help/{section}', [HelpController::class, 'section'])->name('help.section');
 
     // Profile Management
     Route::prefix('profile')->group(function () {

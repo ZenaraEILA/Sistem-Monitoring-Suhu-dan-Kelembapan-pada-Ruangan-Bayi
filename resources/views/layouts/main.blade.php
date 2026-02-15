@@ -1000,6 +1000,11 @@
                                 <i class="fas fa-chart-candle"></i> Tren Harian
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('help*') ? 'active' : '' }}" href="{{ route('help.index') }}">
+                                <i class="fas fa-question-circle"></i> Bantuan & Panduan
+                            </a>
+                        </li>
                         @if(auth()->user()->role === 'admin')
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('device*') ? 'active' : '' }}" href="{{ route('device.index') }}">

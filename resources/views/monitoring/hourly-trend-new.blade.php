@@ -66,10 +66,10 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <small class="text-muted d-block fw-bold">Rata-rata Suhu</small>
-                            <h3 class="mb-0" style="color: #dc3545;">{{ $avgTemp }}°C</h3>
+                            <h3 class="mb-0" style="color: #E74C3C;">{{ $avgTemp }}°C</h3>
                         </div>
                         <div class="ms-auto">
-                            <i class="fas fa-thermometer-half fa-3x" style="color: #dc3545; opacity: 0.2;"></i>
+                            <i class="fas fa-thermometer-half fa-3x" style="color: #E74C3C; opacity: 0.2;"></i>
                         </div>
                     </div>
                 </div>
@@ -81,10 +81,10 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <small class="text-muted d-block fw-bold">Suhu Maksimal</small>
-                            <h3 class="mb-0" style="color: #ff6b6b;">{{ $maxTemp }}°C</h3>
+                            <h3 class="mb-0" style="color: #E74C3C;">{{ $maxTemp }}°C</h3>
                         </div>
                         <div class="ms-auto">
-                            <i class="fas fa-arrow-up fa-3x" style="color: #ff6b6b; opacity: 0.2;"></i>
+                            <i class="fas fa-arrow-up fa-3x" style="color: #E74C3C; opacity: 0.2;"></i>
                         </div>
                     </div>
                 </div>
@@ -96,10 +96,10 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <small class="text-muted d-block fw-bold">Suhu Minimal</small>
-                            <h3 class="mb-0" style="color: #0dcaf0;">{{ $minTemp }}°C</h3>
+                            <h3 class="mb-0" style="color: #E74C3C;">{{ $minTemp }}°C</h3>
                         </div>
                         <div class="ms-auto">
-                            <i class="fas fa-arrow-down fa-3x" style="color: #0dcaf0; opacity: 0.2;"></i>
+                            <i class="fas fa-arrow-down fa-3x" style="color: #E74C3C; opacity: 0.2;"></i>
                         </div>
                     </div>
                 </div>
@@ -111,10 +111,10 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <small class="text-muted d-block fw-bold">Rata-rata Kelembapan</small>
-                            <h3 class="mb-0" style="color: #0dcaf0;">{{ $avgHumidity }}%</h3>
+                            <h3 class="mb-0" style="color: #3498DB;">{{ $avgHumidity }}%</h3>
                         </div>
                         <div class="ms-auto">
-                            <i class="fas fa-tint fa-3x" style="color: #0dcaf0; opacity: 0.2;"></i>
+                            <i class="fas fa-tint fa-3x" style="color: #3498DB; opacity: 0.2;"></i>
                         </div>
                     </div>
                 </div>
@@ -157,21 +157,11 @@
                         $maxTemp = $data->max_temp ?? 0;
                         $avgHum = $data->avg_humidity ?? 0;
                         
-                        // Temperature color
-                        $tempColor = '#28a745'; // green
-                        if ($avgTemp >= 30) {
-                            $tempColor = '#dc3545'; // red
-                        } elseif ($avgTemp >= 28 || $avgTemp < 20) {
-                            $tempColor = '#ffc107'; // yellow
-                        }
+                        // Temperature color - solid merah untuk consistency dengan grafik
+                        $tempColor = '#E74C3C'; // Merah profesional
                         
-                        // Humidity color
-                        $humColor = '#0dcaf0'; // blue
-                        if ($avgHum >= 65 || $avgHum < 35) {
-                            $humColor = '#dc3545'; // red
-                        } elseif ($avgHum >= 60 || $avgHum < 40) {
-                            $humColor = '#ff9800'; // orange
-                        }
+                        // Humidity color - solid biru untuk consistency dengan grafik
+                        $humColor = '#3498DB'; // Biru profesional
                         
                         // Percentage for bar
                         $tempPercent = min(max(($avgTemp / 40) * 100, 0), 100);
@@ -257,10 +247,10 @@
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Rata-rata Suhu',
+                        label: 'Rata-rata Suhu (°C)',
                         data: avgTemps,
-                        borderColor: '#dc3545',
-                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderColor: '#E74C3C',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
                         borderWidth: 3,
                         fill: true,
                         pointRadius: 5,
@@ -271,9 +261,9 @@
                         yAxisID: 'y'
                     },
                     {
-                        label: 'Suhu Maksimal',
+                        label: 'Suhu Maksimal (°C)',
                         data: maxTemps,
-                        borderColor: '#ff6b6b',
+                        borderColor: 'rgba(231, 76, 60, 0.5)',
                         borderWidth: 1,
                         borderDash: [5, 5],
                         fill: false,
@@ -282,9 +272,9 @@
                         yAxisID: 'y'
                     },
                     {
-                        label: 'Suhu Minimal',
+                        label: 'Suhu Minimal (°C)',
                         data: minTemps,
-                        borderColor: '#17a2b8',
+                        borderColor: 'rgba(231, 76, 60, 0.3)',
                         borderWidth: 1,
                         borderDash: [5, 5],
                         fill: false,
@@ -293,10 +283,10 @@
                         yAxisID: 'y'
                     },
                     {
-                        label: 'Rata-rata Kelembapan',
+                        label: 'Rata-rata Kelembapan (%)',
                         data: avgHums,
-                        borderColor: '#0dcaf0',
-                        backgroundColor: 'rgba(13, 202, 240, 0.1)',
+                        borderColor: '#3498DB',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
                         borderWidth: 3,
                         fill: true,
                         pointRadius: 5,
@@ -339,11 +329,11 @@
                         title: {
                             display: true,
                             text: 'Suhu (°C)',
-                            color: '#dc3545',
+                            color: '#E74C3C',
                             font: { size: 11, weight: 'bold' }
                         },
-                        ticks: { color: '#dc3545', font: { weight: '600' } },
-                        grid: { color: 'rgba(220, 53, 69, 0.1)' }
+                        ticks: { color: '#E74C3C', font: { weight: '600' } },
+                        grid: { color: 'rgba(231, 76, 60, 0.1)' }
                     },
                     y1: {
                         type: 'linear',
@@ -352,10 +342,10 @@
                         title: {
                             display: true,
                             text: 'Kelembapan (%)',
-                            color: '#0dcaf0',
+                            color: '#3498DB',
                             font: { size: 11, weight: 'bold' }
                         },
-                        ticks: { color: '#0dcaf0', font: { weight: '600' } },
+                        ticks: { color: '#3498DB', font: { weight: '600' } },
                         grid: { display: false }
                     }
                 }

@@ -87,10 +87,10 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <small class="text-muted d-block fw-bold">Rata-rata Suhu</small>
-                            <h3 class="mb-0" style="color: #0056b3;">{{ $avgTemp }}°C</h3>
+                            <h3 class="mb-0" style="color: #E74C3C;">{{ $avgTemp }}°C</h3>
                         </div>
                         <div class="ms-auto">
-                            <i class="fas fa-thermometer-half fa-3x" style="color: #0056b3; opacity: 0.2;"></i>
+                            <i class="fas fa-thermometer-half fa-3x" style="color: #E74C3C; opacity: 0.2;"></i>
                         </div>
                     </div>
                 </div>
@@ -102,10 +102,10 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <small class="text-muted d-block fw-bold">Suhu Maksimal</small>
-                            <h3 class="mb-0" style="color: #004084;">{{ $maxTemp }}°C</h3>
+                            <h3 class="mb-0" style="color: #E74C3C;">{{ $maxTemp }}°C</h3>
                         </div>
                         <div class="ms-auto">
-                            <i class="fas fa-arrow-up fa-3x" style="color: #004084; opacity: 0.2;"></i>
+                            <i class="fas fa-arrow-up fa-3x" style="color: #E74C3C; opacity: 0.2;"></i>
                         </div>
                     </div>
                 </div>
@@ -117,10 +117,10 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <small class="text-muted d-block fw-bold">Suhu Minimal</small>
-                            <h3 class="mb-0" style="color: #007bff;">{{ $minTemp }}°C</h3>
+                            <h3 class="mb-0" style="color: #E74C3C;">{{ $minTemp }}°C</h3>
                         </div>
                         <div class="ms-auto">
-                            <i class="fas fa-arrow-down fa-3x" style="color: #007bff; opacity: 0.2;"></i>
+                            <i class="fas fa-arrow-down fa-3x" style="color: #E74C3C; opacity: 0.2;"></i>
                         </div>
                     </div>
                 </div>
@@ -132,10 +132,10 @@
                     <div class="d-flex align-items-center">
                         <div>
                             <small class="text-muted d-block fw-bold">Rata-rata Kelembapan</small>
-                            <h3 class="mb-0" style="color: #007bff;">{{ $avgHumidity }}%</h3>
+                            <h3 class="mb-0" style="color: #3498DB;">{{ $avgHumidity }}%</h3>
                         </div>
                         <div class="ms-auto">
-                            <i class="fas fa-tint fa-3x" style="color: #007bff; opacity: 0.2;"></i>
+                            <i class="fas fa-tint fa-3x" style="color: #3498DB; opacity: 0.2;"></i>
                         </div>
                     </div>
                 </div>
@@ -145,20 +145,20 @@
 
     <!-- Professional Chart Container - MetaTrader 5 Style -->
     <div class="card mb-4">
-        <div class="card-header" style="background: linear-gradient(135deg, #0056b3 0%, #004084 100%); color: white;">
+        <div class="card-header" style="background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%); color: white;">
             <h5 class="mb-0" style="color: white;"><i class="fas fa-chart-candle"></i> Grafik Analisis Tren Candle</h5>
         </div>
-        <div class="card-body" style="background-color: #f8f9fa;">
+        <div class="card-body" style="background-color: #FFFFFF;">
             <div id="candleChart" style="height: 500px;"></div>
         </div>
     </div>
 
     <!-- Secondary Chart: Temperature & Humidity Overlay -->
     <div class="card mb-4">
-        <div class="card-header" style="background: linear-gradient(135deg, #0056b3 0%, #004084 100%); color: white;">
+        <div class="card-header" style="background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%); color: white;">
             <h5 class="mb-0" style="color: white;"><i class="fas fa-wave-square"></i> Grafik Suhu & Kelembapan Overlay</h5>
         </div>
-        <div class="card-body" style="background-color: #f8f9fa;">
+        <div class="card-body" style="background-color: #FFFFFF;">
             <div id="overlayChart" style="height: 400px;"></div>
         </div>
     </div>
@@ -188,21 +188,11 @@
                         $maxTemp = $data->max_temp ?? 0;
                         $avgHum = $data->avg_humidity ?? 0;
                         
-                        // Temperature color - all blue shades
-                        $tempColor = '#007bff'; // light blue
-                        if ($avgTemp >= 30) {
-                            $tempColor = '#0056b3'; // dark blue
-                        } elseif ($avgTemp >= 28 || $avgTemp < 20) {
-                            $tempColor = '#004084'; // darker blue
-                        }
+                        // Temperature color - solid merah
+                        $tempColor = '#E74C3C'; // Merah profesional
                         
-                        // Humidity color - all blue shades
-                        $humColor = '#007bff'; // light blue
-                        if ($avgHum >= 65 || $avgHum < 35) {
-                            $humColor = '#0056b3'; // dark blue
-                        } elseif ($avgHum >= 60 || $avgHum < 40) {
-                            $humColor = '#004084'; // darker blue
-                        }
+                        // Humidity color - solid biru
+                        $humColor = '#3498DB'; // Biru profesional
                         
                         // Percentage for bar
                         $tempPercent = min(max(($avgTemp / 40) * 100, 0), 100);
@@ -308,30 +298,30 @@
                         reset: true
                     }
                 },
-                background: '#1a1a1a'
+                background: '#FFFFFF'
             },
             title: {
-                text: 'Temperature Candlestick Analysis',
+                text: 'Analisis Tren Suhu (Candlestick)',
                 style: {
-                    color: '#fff',
+                    color: '#333',
                     fontSize: '14px'
                 }
             },
             xaxis: {
                 type: 'datetime',
                 labels: {
-                    style: { colors: '#888', fontSize: '11px' }
+                    style: { colors: '#666', fontSize: '11px' }
                 },
-                axisBorder: { color: '#444' },
-                axisTicks: { color: '#444' }
+                axisBorder: { color: '#ECEFF1' },
+                axisTicks: { color: '#ECEFF1' }
             },
             yaxis: {
                 title: {
-                    text: 'Temperature (°C)',
-                    style: { color: '#0056b3', fontSize: '12px', fontWeight: 'bold' }
+                    text: 'Suhu (°C)',
+                    style: { color: '#E74C3C', fontSize: '12px', fontWeight: 'bold' }
                 },
                 labels: {
-                    style: { colors: '#0056b3', fontSize: '11px' }
+                    style: { colors: '#E74C3C', fontSize: '11px' }
                 }
             },
             plotOptions: {
@@ -346,7 +336,7 @@
                 }
             },
             grid: {
-                borderColor: '#333',
+                borderColor: '#ECEFF1',
                 strokeDashArray: 3,
                 xaxis: { lines: { show: true } },
                 yaxis: { lines: { show: true } }
@@ -381,9 +371,9 @@
                 height: 400,
                 zoom: { enabled: true },
                 toolbar: { show: true },
-                background: '#f8f9fa'
+                background: '#FFFFFF'
             },
-            colors: ['#0056b3', '#007bff'],
+            colors: ['#E74C3C', '#3498DB'],
             dataLabels: { enabled: false },
             stroke: {
                 curve: 'smooth',
@@ -393,7 +383,7 @@
                 type: 'gradient',
                 gradient: {
                     shadeIntensity: 1,
-                    opacityFrom: 0.45,
+                    opacityFrom: 0.4,
                     opacityTo: 0.05,
                     stops: [20, 100, 100, 100]
                 }
@@ -407,21 +397,21 @@
             yaxis: [
                 {
                     title: {
-                        text: 'Temperature (°C)',
-                        style: { color: '#0056b3', fontSize: '12px', fontWeight: 'bold' }
+                        text: 'Suhu (°C)',
+                        style: { color: '#E74C3C', fontSize: '12px', fontWeight: 'bold' }
                     },
                     labels: {
-                        style: { color: '#0056b3' }
+                        style: { color: '#E74C3C' }
                     }
                 },
                 {
                     opposite: true,
                     title: {
-                        text: 'Humidity (%)',
-                        style: { color: '#007bff', fontSize: '12px', fontWeight: 'bold' }
+                        text: 'Kelembapan (%)',
+                        style: { color: '#3498DB', fontSize: '12px', fontWeight: 'bold' }
                     },
                     labels: {
-                        style: { color: '#007bff' }
+                        style: { color: '#3498DB' }
                     }
                 }
             ],
@@ -434,18 +424,18 @@
                 fontSize: '12px'
             },
             grid: {
-                borderColor: '#e0e0e0',
+                borderColor: '#ECEFF1',
                 strokeDashArray: 4
             }
         };
 
         const overlaySeries = [
             {
-                name: 'Temperature (°C)',
+                name: 'Suhu (°C)',
                 data: avgTemps
             },
             {
-                name: 'Humidity (%)',
+                name: 'Kelembapan (%)',
                 data: avgHumidities
             }
         ];

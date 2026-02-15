@@ -101,19 +101,19 @@
                         <div class="alert alert-info">
                             <strong>📊 Cara Membaca Grafik:</strong>
                             <ul class="mb-0 mt-2">
-                                <li><strong>Garis Biru:</strong> Grafik suhu (°C)</li>
-                                <li><strong>Garis Jingga:</strong> Grafik kelembapan (%)</li>
+                                <li><strong style="color: #E74C3C;">🔴 Garis Merah:</strong> Grafik Suhu (°C)</li>
+                                <li><strong style="color: #3498DB;">🔵 Garis Biru:</strong> Grafik Kelembapan (%)</li>
                                 <li><strong>Sumbu X:</strong> Waktu (dalam jam atau hari)</li>
                                 <li><strong>Sumbu Y:</strong> Nilai temperatur/kelembapan</li>
                             </ul>
                         </div>
 
-                        <div class="alert alert-success">
-                            <strong>🟢 Arti Warna Grafik:</strong>
-                            <ul class="mb-0 mt-2">
-                                <li><span class="badge bg-success">Hijau</span> = Kondisi AMAN (suhu 15-30°C, kelembapan 35-60%)</li>
-                                <li><span class="badge bg-warning">Kuning</span> = Kondisi PERINGATAN (agak luar dari normal)</li>
-                                <li><span class="badge bg-danger">Merah</span> = Kondisi BAHAYA (di luar range aman)</li>
+                        <div class="alert alert-info">
+                            <strong>🎨 Palet Warna Grafik:</strong>
+                            <ul class="mb-0 mt-2 small">
+                                <li><span style="display: inline-block; width: 16px; height: 16px; background: #E74C3C; border-radius: 2px; margin-right: 8px;"></span><strong>Merah (#E74C3C):</strong> Memudahkan identifikasi data Suhu</li>
+                                <li><span style="display: inline-block; width: 16px; height: 16px; background: #3498DB; border-radius: 2px; margin-right: 8px;"></span><strong>Biru (#3498DB):</strong> Memudahkan identifikasi data Kelembapan</li>
+                                <li><strong>*Catatan:</strong> Warna grafik adalah garis data, bukan indikator status (berbeda dengan indikator status hijau/kuning/merah)</li>
                             </ul>
                         </div>
 
@@ -585,7 +585,7 @@
                             </li>
                             <li><strong>Di bagian tengah (Grafik):</strong>
                                 <ul>
-                                    <li>Dua grafik: suhu (biru) dan kelembapan (jingga)</li>
+                                    <li>Dua grafik: suhu <span style="color: #E74C3C; font-weight: bold;">(merah)</span> dan kelembapan <span style="color: #3498DB; font-weight: bold;">(biru)</span></li>
                                     <li>Hover mouse untuk detail nilai</li>
                                 </ul>
                             </li>
@@ -612,8 +612,8 @@
                         <ol>
                             <li><strong>Lihat legend warna:</strong>
                                 <ul>
-                                    <li>Biru = Suhu</li>
-                                    <li>Jingga = Kelembapan</li>
+                                    <li><span style="color: #E74C3C; font-weight: bold;">Merah = Suhu (°C)</span></li>
+                                    <li><span style="color: #3498DB; font-weight: bold;">Biru = Kelembapan (%)</span></li>
                                 </ul>
                             </li>
                             <li><strong>Amati trend:</strong>

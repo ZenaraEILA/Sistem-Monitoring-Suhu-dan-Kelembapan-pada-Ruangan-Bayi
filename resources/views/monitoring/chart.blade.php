@@ -74,10 +74,10 @@
                 <div class="d-flex align-items-center">
                     <div>
                         <small class="text-muted d-block fw-bold">Rata-rata Suhu</small>
-                        <h3 class="mb-0" style="color: #0056b3;" id="tempAvg">-°C</h3>
+                        <h3 class="mb-0" style="color: #E74C3C;" id="tempAvg">-°C</h3>
                     </div>
                     <div class="ms-auto">
-                        <i class="fas fa-thermometer-half fa-3x" style="color: #0056b3; opacity: 0.2;"></i>
+                        <i class="fas fa-thermometer-half fa-3x" style="color: #E74C3C; opacity: 0.2;"></i>
                     </div>
                 </div>
             </div>
@@ -89,10 +89,10 @@
                 <div class="d-flex align-items-center">
                     <div>
                         <small class="text-muted d-block fw-bold">Rata-rata Kelembapan</small>
-                        <h3 class="mb-0" style="color: #007bff;" id="humAvg">-%</h3>
+                        <h3 class="mb-0" style="color: #3498DB;" id="humAvg">-%</h3>
                     </div>
                     <div class="ms-auto">
-                        <i class="fas fa-tint fa-3x" style="color: #007bff; opacity: 0.2;"></i>
+                        <i class="fas fa-tint fa-3x" style="color: #3498DB; opacity: 0.2;"></i>
                     </div>
                 </div>
             </div>
@@ -108,7 +108,7 @@
         <div class="card-header" style="background: linear-gradient(135deg, #0056b3 0%, #004084 100%); color: white;">
             <h5 class="mb-0" style="color: white;"><i class="fas fa-wave-square"></i> Grafik Suhu & Kelembapan Overlay</h5>
         </div>
-        <div class="card-body" style="background-color: #f8f9fa;">
+            <div class="card-body" style="background-color: #FFFFFF;">
             <div id="overlayChart" style="height: 400px;"></div>
         </div>
     </div>
@@ -284,9 +284,9 @@
                 height: 400,
                 zoom: { enabled: true },
                 toolbar: { show: true },
-                background: '#f8f9fa'
+                background: '#FFFFFF'
             },
-            colors: ['#0056b3', '#007bff'],
+            colors: ['#E74C3C', '#3498DB'],
             dataLabels: { enabled: false },
             stroke: {
                 curve: 'smooth',
@@ -310,21 +310,21 @@
             yaxis: [
                 {
                     title: {
-                        text: 'Temperature (°C)',
-                        style: { color: '#0056b3', fontSize: '12px', fontWeight: 'bold' }
+                        text: 'Suhu (°C)',
+                        style: { color: '#E74C3C', fontSize: '12px', fontWeight: 'bold' }
                     },
                     labels: {
-                        style: { color: '#0056b3' }
+                        style: { color: '#E74C3C' }
                     }
                 },
                 {
                     opposite: true,
                     title: {
-                        text: 'Humidity (%)',
-                        style: { color: '#007bff', fontSize: '12px', fontWeight: 'bold' }
+                        text: 'Kelembapan (%)',
+                        style: { color: '#3498DB', fontSize: '12px', fontWeight: 'bold' }
                     },
                     labels: {
-                        style: { color: '#007bff' }
+                        style: { color: '#3498DB' }
                     }
                 }
             ],
@@ -337,7 +337,7 @@
                 fontSize: '12px'
             },
             grid: {
-                borderColor: '#e0e0e0',
+                borderColor: '#ECEFF1',
                 strokeDashArray: 4
             }
         };
@@ -347,11 +347,11 @@
             ...overlayOptions,
             series: [
                 {
-                    name: 'Temperature (°C)',
+                    name: 'Suhu (°C)',
                     data: filteredTemps
                 },
                 {
-                    name: 'Humidity (%)',
+                    name: 'Kelembapan (%)',
                     data: filteredHum
                 }
             ]

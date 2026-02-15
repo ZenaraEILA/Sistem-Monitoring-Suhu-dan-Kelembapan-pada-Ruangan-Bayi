@@ -305,16 +305,28 @@
             margin-right: 6px;
         }
 
-        /* Sidebar Enhancement */
+        /* Sidebar Enhancement - FIXED POSITIONING */
         .sidebar {
             background: white;
             box-shadow: 2px 0 8px rgba(0,0,0,0.06);
-            min-height: 100vh;
-            position: sticky;
-            top: 0;
-            max-height: 100vh;
+            
+            /* CRITICAL: Fixed positioning untuk navbar tetap diam */
+            position: fixed;
+            left: 0;
+            top: 59px;  /* Sesuaikan dengan tinggi navbar atas (kurang lebih 59px untuk Bootstrap navbar) */
+            bottom: 0;
+            width: 16.66%;  /* Width col-md-2 dari Bootstrap (2/12) */
+            
+            /* Scrollable area dalam sidebar */
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 20px 0;
+            
+            /* Z-index lebih rendah dari navbar */
+            z-index: 900;
+            
+            /* Smooth scrolling */
+            scroll-behavior: smooth;
         }
 
         .sidebar .nav-link {
@@ -699,10 +711,14 @@
             letter-spacing: 0.5px;
         }
 
-        /* Content Wrapper */
+        /* Content Wrapper - Adjust untuk Fixed Sidebar */
         .content-wrapper {
             padding: 24px;
             animation: fadeIn 0.5s ease-out;
+            
+            /* CRITICAL: Margin-left untuk accommodate fixed sidebar */
+            margin-left: 16.66%;  /* Width col-md-2 (2/12 = 16.66%) */
+            min-height: calc(100vh - 59px);  /* Full height minus navbar */
         }
 
         /* Clock Display */
@@ -744,6 +760,24 @@
             }
         }
 
+        /* ========== HELP PAGE SIDEBAR - STICKY POSITIONING ========== */
+        /* Untuk halaman bantuan agar sidebar tetap terlihat saat scroll */
+        
+        .help-sidebar {
+            position: sticky;
+            top: 80px;  /* Jarak dari navbar atas (navbar ~59px + padding ~20px) */
+            max-height: calc(100vh - 100px);  /* Max height untuk sidebar scroll sendiri */
+            overflow-y: auto;
+        }
+        
+        /* Help Tips Card juga sticky */
+        .help-tips {
+            position: sticky;
+            top: calc(80px + 500px);  /* Sticky di bawah daftar isi */
+            max-height: calc(100vh - 150px);
+            overflow-y: auto;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .temp-display,
@@ -767,6 +801,15 @@
 
             .content-wrapper {
                 padding: 16px;
+                margin-left: 0 !important;  /* Reset margin untuk mobile */
+            }
+            
+            /* Hide sidebar pada mobile */
+            .sidebar {
+                position: absolute;
+                left: -100%;
+                width: 100%;
+                top: 59px;
             }
 
             /* Responsive Navbar */

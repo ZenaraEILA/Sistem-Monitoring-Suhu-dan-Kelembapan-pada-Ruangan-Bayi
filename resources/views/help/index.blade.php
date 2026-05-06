@@ -121,6 +121,33 @@
                     </div>
                 </div>
 
+                <!-- Status Perangkat Keras (Kipas & Penghangat) -->
+                <div class="card mb-3 help-card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-fan"></i> Status Perangkat (Kipas & Penghangat)</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Dashboard kini dilengkapi dengan animasi status perangkat hardware yang beroperasi secara otomatis berdasarkan suhu:</p>
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <strong><i class="fas fa-fan text-primary"></i> Kipas 1:</strong>
+                                <p class="small text-muted">Akan menyala (berputar) saat suhu mencapai 28°C atau lebih untuk sirkulasi udara dasar.</p>
+                            </div>
+                            <div class="col-md-4">
+                                <strong><i class="fas fa-fan text-primary"></i> Kipas 2:</strong>
+                                <p class="small text-muted">Akan menyala (berputar) saat suhu melebihi 30°C sebagai pendinginan ekstra.</p>
+                            </div>
+                            <div class="col-md-4">
+                                <strong><i class="fas fa-lightbulb text-warning"></i> Penghangat:</strong>
+                                <p class="small text-muted">Lampu penghangat akan menyala (berkedip) saat suhu turun di bawah 28°C.</p>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mt-2 mb-0 small">
+                            <strong>💡 Info:</strong> Semua animasi perangkat akan berhenti seketika jika sensor ESP terputus (Offline).
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Indikator Suhu -->
                 <div class="card mb-3 help-card shadow-sm">
                     <div class="card-header bg-light">
@@ -389,6 +416,16 @@
                                     <td><strong>Status</strong></td>
                                     <td>Kondisi kesehatan</td>
                                     <td>Aman, Peringatan, Kritis</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Catatan Tindakan</strong></td>
+                                    <td>Tindakan medis yang diambil saat Tidak Aman</td>
+                                    <td>"Menyalakan AC tambahan"</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Aksi</strong></td>
+                                    <td>Tombol untuk interaksi dengan data</td>
+                                    <td>Tombol Edit (kuning) / Detail (biru)</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -678,11 +715,37 @@
                     </div>
                 </div>
 
-                <!-- Tutorial 5: Unduh Laporan -->
+                <!-- Tutorial 5: Catatan Tindakan -->
                 <div class="card mb-3 help-card shadow-sm help-tutorial">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">
-                            <span class="badge bg-primary">Langkah 5</span> Mengunduh Laporan PDF
+                            <span class="badge bg-primary">Langkah 5</span> Mencatat Tindakan Medis (Jika Tidak Aman)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Jika terjadi indikator peringatan atau kritis:</strong></p>
+
+                        <ol>
+                            <li>Buka menu <strong>"Riwayat Data"</strong> di sidebar</li>
+                            <li>Cari baris data yang statusnya <strong>Tidak Aman</strong></li>
+                            <li>Klik tombol <span class="badge bg-warning text-dark"><i class="fas fa-edit"></i> Edit</span> warna kuning di kolom "Catatan Tindakan"</li>
+                            <li>Sebuah form jendela <em>(pop-up)</em> akan muncul</li>
+                            <li>Ketikkan tindakan yang sudah Anda lakukan (misalnya: "Menyalakan AC tambahan dan membuka jendela")</li>
+                            <li>Klik tombol <strong>"Simpan"</strong></li>
+                            <li>Catatan Anda akan tersimpan secara permanen untuk jejak medis</li>
+                        </ol>
+
+                        <div class="alert alert-info mt-3 small">
+                            <strong>💡 Tips:</strong> Anda juga dapat menekan tombol mata (warna biru) untuk melihat rekomendasi sistem jika Anda bingung harus melakukan tindakan apa.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tutorial 6: Unduh Laporan -->
+                <div class="card mb-3 help-card shadow-sm help-tutorial">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <span class="badge bg-primary">Langkah 6</span> Mengunduh Laporan PDF
                         </h5>
                     </div>
                     <div class="card-body">
@@ -705,12 +768,12 @@
                     </div>
                 </div>
 
-                <!-- Tutorial 6: Admin User Management -->
+                <!-- Tutorial 7: Admin User Management -->
                 @if(auth()->user()->role === 'admin')
                 <div class="card mb-3 help-card shadow-sm help-tutorial">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">
-                            <span class="badge bg-primary">Langkah 6</span> Mengelola User (Admin)
+                            <span class="badge bg-primary">Langkah 7</span> Mengelola User (Admin)
                         </h5>
                     </div>
                     <div class="card-body">

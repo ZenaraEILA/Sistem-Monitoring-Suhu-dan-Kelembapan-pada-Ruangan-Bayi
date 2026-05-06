@@ -22,11 +22,11 @@
         /* ===== PAGE SETTINGS ===== */
         .page {
             width: 210mm;
-            height: 297mm;
             margin: 0;
             padding: 0;
             page-break-after: always;
             position: relative;
+            clear: both;
         }
 
         .page:last-child {
@@ -35,19 +35,18 @@
 
         /* Page content wrapper */
         .page-content {
-            width: 100%;
-            height: 100%;
             padding: 30px 25px;
             position: relative;
         }
 
         /* ===== SLIDE 1: COVER PAGE ===== */
         .cover-page {
-            background: linear-gradient(135deg, #0d6efd 0%, #0099ff 50%, #0dcaf0 100%);
+            background-color: #0d6efd;
             color: white;
             text-align: center;
             position: relative;
             overflow: hidden;
+            height: 296mm;
         }
 
         .cover-page::before {
@@ -62,10 +61,9 @@
         }
 
         .cover-page .page-content {
-            padding: 50px 25px;
+            padding: 50px 25px 150px 25px;
             text-align: center;
             height: auto;
-            min-height: 297mm;
         }
 
         .cover-content {
@@ -146,19 +144,24 @@
         }
 
         .summary-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
+            width: 100%;
             margin-bottom: 12px;
+            display: block;
         }
 
         .summary-card {
+            display: inline-block;
+            width: 31%;
+            vertical-align: top;
+            margin-right: 1.5%;
+            margin-bottom: 10px;
             background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
             border: 1px solid #e9ecef;
             border-radius: 6px;
             padding: 11px;
             position: relative;
             overflow: hidden;
+            box-sizing: border-box;
         }
 
         .summary-card::before {
@@ -238,7 +241,7 @@
         }
 
         .data-table thead {
-            background: linear-gradient(135deg, #0d6efd 0%, #0099ff 100%);
+            background-color: #0d6efd;
             color: white;
             font-weight: 800;
         }
@@ -255,6 +258,11 @@
         .data-table td {
             padding: 6px;
             border: 1px solid #e9ecef;
+        }
+
+        .data-table tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
         }
 
         .data-table tbody tr:nth-child(odd) {
@@ -276,12 +284,12 @@
         }
 
         .badge-aman {
-            background: linear-gradient(135deg, #d1f2eb 0%, #c3fae8 100%);
+            background-color: #d1f2eb;
             color: #0f5132;
         }
 
         .badge-tidak-aman {
-            background: linear-gradient(135deg, #f8d7da 0%, #f5c2c7 100%);
+            background-color: #f8d7da;
             color: #842029;
         }
 
@@ -349,8 +357,9 @@
 
         /* ===== SLIDE 6: CLOSING PAGE ===== */
         .closing-page {
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            background-color: #f8f9fa;
             position: relative;
+            height: 296mm;
         }
 
         .closing-page::before {
@@ -365,10 +374,9 @@
         }
 
         .closing-page .page-content {
-            padding: 50px 25px;
+            padding: 50px 25px 150px 25px;
             text-align: center;
             height: auto;
-            min-height: 297mm;
             position: relative;
             z-index: 2;
         }
@@ -431,7 +439,6 @@
     <div class="page cover-page">
         <div class="page-content">
             <div class="cover-content">
-                <div class="cover-logo">📋</div>
                 <div class="cover-title">LAPORAN MONITORING</div>
                 <div class="cover-subtitle">Suhu & Kelembapan Ruang Bayi</div>
 
@@ -477,7 +484,7 @@
     <!-- ===== SLIDE 2: SUMMARY PAGE ===== -->
     <div class="page summary-page">
         <div class="page-content">
-            <div class="page-title">📊 Ringkasan Penting</div>
+            <div class="page-title">RINGKASAN PENTING</div>
 
             <div class="summary-grid">
                 <div class="summary-card">
@@ -540,9 +547,9 @@
                     <div class="summary-card-label">Status Ruangan</div>
                     <div class="summary-card-value" style="font-size: 18px;">
                         @if(($summary['unsafe_percentage'] ?? 0) <= 5)
-                        <span class="status-stable">✓ STABIL</span>
+                        <span class="status-stable">STABIL</span>
                         @else
-                        <span class="status-unstable">⚠ TIDAK STABIL</span>
+                        <span class="status-unstable">TIDAK STABIL</span>
                         @endif
                     </div>
                     <div class="summary-card-unit">Kondisi</div>
@@ -571,7 +578,7 @@
     @if(!empty($chartImage) && file_exists($chartImage))
     <div class="page chart-page">
         <div class="page-content">
-            <div class="page-title">📈 Grafik Monitoring</div>
+            <div class="page-title">GRAFIK MONITORING</div>
 
             <div class="chart-container-full">
                 <div class="chart-description">
@@ -587,7 +594,7 @@
     @if($monitorings->count() > 0)
     <div class="page table-page">
         <div class="page-content">
-            <div class="page-title">📋 Data Detail Monitoring ({{ $monitorings->count() }} Records)</div>
+            <div class="page-title">DATA DETAIL MONITORING ({{ $monitorings->count() }} Records)</div>
 
             <table class="data-table">
                 <thead>
@@ -607,9 +614,9 @@
                         <td style="text-align: center; font-weight: 600;">{{ round($monitoring->humidity, 2) }}</td>
                         <td style="text-align: center;">
                             @if($monitoring->status === 'Aman')
-                            <span class="status-badge badge-aman">✓ Aman</span>
+                            <span class="status-badge badge-aman">Aman</span>
                             @else
-                            <span class="status-badge badge-tidak-aman">✗ Tidak Aman</span>
+                            <span class="status-badge badge-tidak-aman">Tidak Aman</span>
                             @endif
                         </td>
                         <td>{{ substr($monitoring->action_note ?? '-', 0, 50) }}</td>
@@ -625,11 +632,11 @@
     @if($incidents->count() > 0 || $doctorNotes->count() > 0)
     <div class="page notes-page">
         <div class="page-content">
-            <div class="page-title">📝 Catatan Tambahan</div>
+            <div class="page-title">CATATAN TAMBAHAN</div>
 
             @if($incidents->count() > 0)
             <div class="notes-section">
-                <div class="notes-title">⚠️ Incident Markers ({{ $incidents->count() }} Events)</div>
+                <div class="notes-title">Incident Markers ({{ $incidents->count() }} Events)</div>
                 @foreach($incidents as $incident)
                 <div class="incident-item">
                     <div class="incident-time">{{ $incident->created_at->format('d/m/Y H:i:s') }} — {{ $incident->incident_type }}</div>
@@ -639,14 +646,14 @@
             </div>
             @else
             <div class="notes-section">
-                <div class="notes-title">⚠️ Incident Markers</div>
+                <div class="notes-title">Incident Markers</div>
                 <div class="empty-state">Tidak ada kejadian yang tercatat pada periode ini.</div>
             </div>
             @endif
 
             @if($doctorNotes->count() > 0)
             <div class="notes-section">
-                <div class="notes-title">📋 Catatan Dokter ({{ $doctorNotes->count() }} Notes)</div>
+                <div class="notes-title">Catatan Dokter ({{ $doctorNotes->count() }} Notes)</div>
                 @foreach($doctorNotes as $note)
                 <div class="note-item">
                     <div class="note-date">{{ $note->note_date->format('d/m/Y') }}</div>
@@ -656,7 +663,7 @@
             </div>
             @else
             <div class="notes-section">
-                <div class="notes-title">📋 Catatan Dokter</div>
+                <div class="notes-title">Catatan Dokter</div>
                 <div class="empty-state">Tidak ada catatan dokter pada periode ini.</div>
             </div>
             @endif
@@ -667,7 +674,6 @@
     <!-- ===== SLIDE 6: PENUTUP PAGE ===== -->
     <div class="page closing-page">
         <div class="page-content closing-content">
-            <div class="closing-icon">✓</div>
             <div class="closing-title">Laporan Selesai</div>
 
             <div class="closing-text">

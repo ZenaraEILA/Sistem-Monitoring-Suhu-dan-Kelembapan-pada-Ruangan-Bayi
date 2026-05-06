@@ -22,7 +22,7 @@
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background: linear-gradient(135deg, #0d6efd 0%, #e0f2ff 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -108,7 +108,7 @@
 
         .logo-icon {
             font-size: 45px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -220,10 +220,10 @@
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #0d6efd;
             background: white;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.12),
-                        0 0 0 8px rgba(102, 126, 234, 0.06),
+            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.12),
+                        0 0 0 8px rgba(13, 110, 253, 0.06),
                         inset 0 2px 4px rgba(0, 0, 0, 0.02);
             transform: translateY(-1px);
         }
@@ -258,7 +258,7 @@
         .btn-register {
             width: 100%;
             padding: 13px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
             color: white;
             border: none;
             border-radius: 10px;
@@ -269,7 +269,7 @@
             margin-top: 15px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 24px rgba(13, 110, 253, 0.4);
             position: relative;
             overflow: hidden;
         }
@@ -291,12 +291,12 @@
 
         .btn-register:hover {
             transform: translateY(-4px);
-            box-shadow: 0 16px 40px rgba(102, 126, 234, 0.5), 0 0 20px rgba(240, 147, 251, 0.3);
+            box-shadow: 0 16px 40px rgba(13, 110, 253, 0.5), 0 0 20px rgba(10, 88, 202, 0.3);
         }
 
         .btn-register:active {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 20px rgba(13, 110, 253, 0.4);
         }
 
         .btn-register:disabled {
@@ -313,7 +313,7 @@
         }
 
         .register-footer a {
-            color: #667eea;
+            color: #0d6efd;
             text-decoration: none;
             font-weight: 700;
             transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -329,12 +329,12 @@
             left: 0;
             width: 0;
             height: 2px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: linear-gradient(90deg, #0d6efd, #0a58ca);
             transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .register-footer a:hover {
-            color: #764ba2;
+            color: #0a58ca;
         }
 
         .register-footer a:hover::after {
@@ -342,9 +342,9 @@
         }
 
         .password-requirements {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
-            border: 2px solid rgba(102, 126, 234, 0.2);
-            border-left: 4px solid #667eea;
+            background: linear-gradient(135deg, rgba(13, 110, 253, 0.08) 0%, rgba(10, 88, 202, 0.08) 100%);
+            border: 2px solid rgba(13, 110, 253, 0.2);
+            border-left: 4px solid #0d6efd;
             border-radius: 12px;
             padding: 14px 16px;
             margin-bottom: 20px;
@@ -355,14 +355,14 @@
         }
 
         .password-requirements:hover {
-            border-color: rgba(102, 126, 234, 0.35);
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            border-color: rgba(13, 110, 253, 0.35);
+            background: linear-gradient(135deg, rgba(13, 110, 253, 0.12) 0%, rgba(10, 88, 202, 0.12) 100%);
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
         }
 
         .password-requirements-title {
             font-weight: 700;
-            color: #667eea;
+            color: #0d6efd;
             margin-bottom: 10px;
             display: flex;
             align-items: center;
@@ -390,7 +390,7 @@
         }
 
         .password-requirements-list li:hover {
-            color: #667eea;
+            color: #0d6efd;
             font-weight: 500;
         }
 

@@ -146,7 +146,7 @@
     <!-- Professional Chart Container - MetaTrader 5 Style -->
     <div class="card mb-4">
         <div class="card-header" style="background: linear-gradient(135deg, #E74C3C 0%, #C0392B 100%); color: white;">
-            <h5 class="mb-0" style="color: white;"><i class="fas fa-chart-candle"></i> Grafik Analisis Tren Candle</h5>
+            <h5 class="mb-0" style="color: white;"><i class="fas fa-chart-simple"></i> Grafik Analisis Tren Candle</h5>
         </div>
         <div class="card-body" style="background-color: #FFFFFF;">
             <div id="candleChart" style="height: 500px;"></div>

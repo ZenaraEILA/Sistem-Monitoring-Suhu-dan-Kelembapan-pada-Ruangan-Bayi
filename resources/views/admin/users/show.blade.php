@@ -3,7 +3,7 @@ File: resources/views/admin/users/show.blade.php
 GET /admin/users/{id}
 --}}
 
-@extends('layouts.app')
+@extends('layouts.main')
 
 @section('content')
 <div class="container-fluid p-4">
@@ -83,6 +83,28 @@ GET /admin/users/{id}
 
                     <div class="row mb-3">
                         <div class="col-sm-4">
+                            <label class="form-label text-muted small">Username</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <p class="mb-0"><strong>{{ $user->username ?? '-' }}</strong></p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-4">
+                            <label class="form-label text-muted small">NISN / ID Pegawai</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <p class="mb-0"><strong>{{ $user->hospital_id ?? '-' }}</strong></p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-4">
                             <label class="form-label text-muted small">Role</label>
                         </div>
                         <div class="col-sm-8">
@@ -151,11 +173,27 @@ GET /admin/users/{id}
 
                     <div class="row">
                         <div class="col-sm-4">
-                            <label class="form-label text-muted small">Dibuat</label>
+                            <label class="form-label text-muted small">Dibuat Pada</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <p class="mb-0 text-dark fw-bold small">
+                                {{ \Carbon\Carbon::parse($user->created_at)->locale('id')->isoFormat('dddd, D MMMM YYYY') }}
+                            </p>
+                            <p class="mb-0 text-muted small">
+                                Pukul {{ $user->created_at->format('H:i:s') }} (Jam:Menit:Detik)
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <label class="form-label text-muted small">Didaftarkan Oleh</label>
                         </div>
                         <div class="col-sm-8">
                             <p class="mb-0 text-muted small">
-                                {{ $user->created_at->format('d M Y H:i') }}
+                                <span class="badge bg-secondary"><i class="fas fa-user-shield me-1"></i> Administrator / Sistem</span>
                             </p>
                         </div>
                     </div>
@@ -264,6 +302,35 @@ GET /admin/users/{id}
                             </button>
                         </form>
                     @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Code Management -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-key"></i> Code Keamanan (Darurat)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">Code Keamanan digunakan untuk login alternatif tanpa password.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Code Saat Ini:</strong></label>
+                        <div class="alert alert-light border">
+                            <code>{{ $user->security_code ?? 'Belum ada code keamanan' }}</code>
+                        </div>
+                    </div>
+
+                    <form action="{{ route('admin.users.refreshCode', $user) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-info w-100"
+                                onclick="return confirm('Apakah Anda yakin ingin mengganti Code Keamanan user ini? Code yang lama tidak akan bisa digunakan lagi.')">
+                            <i class="fas fa-sync-alt"></i> Generate Code Baru
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

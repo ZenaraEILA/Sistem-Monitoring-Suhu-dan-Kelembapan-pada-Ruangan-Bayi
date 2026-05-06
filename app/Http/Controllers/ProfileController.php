@@ -18,7 +18,20 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        return view('profile.show', compact('user'));
+        // Ambil data aktivitas login untuk heatmap (365 hari terakhir)
+        $activities = \Illuminate\Support\Facades\DB::table('login_logs')
+            ->select(\Illuminate\Support\Facades\DB::raw('DATE(login_time) as date'), \Illuminate\Support\Facades\DB::raw('COUNT(*) as count'))
+            ->where('user_id', $user->id)
+            ->where('login_time', '>=', now()->subDays(365))
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date')
+            ->map(function ($item) {
+                return $item->count;
+            })
+            ->toArray();
+
+        return view('profile.show', compact('user', 'activities'));
     }
 
     /**

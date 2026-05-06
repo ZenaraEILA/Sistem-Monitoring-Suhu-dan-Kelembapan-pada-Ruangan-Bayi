@@ -71,8 +71,15 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td class="fw-bold text-muted">Dibuat</td>
-                                <td>{{ $user->created_at->format('d M Y H:i') }}</td>
+                                <td class="fw-bold text-muted">Dibuat Pada</td>
+                                <td>
+                                    <strong>{{ \Carbon\Carbon::parse($user->created_at)->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</strong><br>
+                                    <small class="text-muted">Pukul {{ $user->created_at->format('H:i:s') }} (Jam:Menit:Detik)</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Didaftarkan Oleh</td>
+                                <td><span class="badge bg-secondary"><i class="fas fa-user-shield me-1"></i> Administrator / Sistem</span></td>
                             </tr>
                             <tr>
                                 <td class="fw-bold text-muted">Update Terakhir</td>

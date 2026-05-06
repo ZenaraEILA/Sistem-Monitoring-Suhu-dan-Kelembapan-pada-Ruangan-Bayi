@@ -23,8 +23,6 @@ use App\Http\Controllers\HelpController;
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
 /**
  * Protected Routes
@@ -133,10 +131,13 @@ Route::middleware(['auth'])->group(function () {
     // User Management (Admin Only) - RBAC System
     Route::prefix('admin')->middleware('is_admin')->name('admin.')->group(function () {
         Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [UserManagementController::class, 'create'])->name('users.create');
+        Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
         Route::get('/users/{user}', [UserManagementController::class, 'show'])->name('users.show');
         Route::post('/users/{user}/update-role', [UserManagementController::class, 'updateRole'])->name('users.updateRole');
         Route::post('/users/{user}/deactivate', [UserManagementController::class, 'deactivateUser'])->name('users.deactivate');
         Route::post('/users/{user}/activate', [UserManagementController::class, 'activateUser'])->name('users.activate');
+        Route::post('/users/{user}/refresh-code', [UserManagementController::class, 'refreshSecurityCode'])->name('users.refreshCode');
     });
 });
 

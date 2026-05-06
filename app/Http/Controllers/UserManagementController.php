@@ -40,6 +40,45 @@ class UserManagementController extends Controller
     }
 
     /**
+     * Show form to create new user (Admin only)
+     */
+    public function create()
+    {
+        return view('admin.users.create');
+    }
+
+    /**
+     * Store new user (Admin only)
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'username' => 'nullable|string|max:255|unique:users',
+            'hospital_id' => 'nullable|string|max:255|unique:users',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6|confirmed',
+            'role' => 'required|in:admin,petugas',
+        ]);
+
+        $securityCode = \Illuminate\Support\Str::random(20);
+
+        User::create([
+            'name' => $validated['name'],
+            'username' => $validated['username'],
+            'hospital_id' => $validated['hospital_id'],
+            'email' => $validated['email'],
+            'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
+            'role' => $validated['role'],
+            'security_code' => $securityCode,
+            'is_active' => true,
+        ]);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User berhasil ditambahkan dengan Code Keamanan: ' . $securityCode);
+    }
+
+    /**
      * ✅ Show user details (Admin only)
      *
      * GET /admin/users/{id}
@@ -228,5 +267,24 @@ class UserManagementController extends Controller
             return redirect()->back()
                 ->with('error', 'Terjadi kesalahan saat mengaktifkan user');
         }
+    }
+
+    /**
+     * Refresh Security Code (Admin only)
+     */
+    public function refreshSecurityCode(Request $request, User $user)
+    {
+        $currentUser = Auth::user();
+
+        // 🔐 Hanya admin
+        if (!$currentUser->isAdmin()) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki izin');
+        }
+
+        $securityCode = \Illuminate\Support\Str::random(20);
+        $user->update(['security_code' => $securityCode]);
+
+        return redirect()->back()
+            ->with('success', 'Code Keamanan untuk ' . $user->name . ' berhasil diperbarui menjadi: ' . $securityCode);
     }
 }

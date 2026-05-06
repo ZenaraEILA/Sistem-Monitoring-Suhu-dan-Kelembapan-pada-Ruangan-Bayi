@@ -105,7 +105,7 @@ class ChartService
         imagestring($image, 5, $leftPadding + 10, 18, $titleText, $black);
         
         // Draw subtitle with gradient effect simulation
-        $subtitleText = 'Dual Axis Chart | Temperature (°C) & Humidity (%)';
+        $subtitleText = 'Dual Axis Chart | Temperature (C) & Humidity (%)';
         imagestring($image, 2, $leftPadding + 10, 35, $subtitleText, $darkGray);
 
         // Draw Y-axis labels - Temperature (Left)
@@ -113,7 +113,7 @@ class ChartService
         for ($i = 0; $i <= 10; $i++) {
             $temp = $maxTemp - ($tempRange / 10) * $i;
             $y = $topPadding + ($graphHeight / 10) * $i;
-            imagestring($image, $fontSize, $leftPadding - 85, $y - 8, round($temp, 1) . '°C', $redColor);
+            imagestring($image, $fontSize, $leftPadding - 55, $y - 8, round($temp, 1) . ' C', $redColor);
             imagesetthickness($image, 1);
             imageline($image, $leftPadding - 5, (int)$y, $leftPadding, (int)$y, $darkGray);
         }
@@ -137,6 +137,8 @@ class ChartService
         $points = [];
         $labels = [];
 
+        $labelFormat = $pointCount > 200 ? 'd/m' : ($pointCount > 50 ? 'd/m H:i' : 'H:i');
+        
         // Calculate points for each monitoring record
         foreach ($monitorings as $index => $monitoring) {
             $x = $leftPadding + ($xStep * $index);
@@ -151,10 +153,10 @@ class ChartService
                 'x' => $x,
                 'temp' => $yTemp,
                 'hum' => $yHum,
-                'time' => $monitoring->recorded_at->format('H:i'),
+                'time' => $monitoring->recorded_at->format($labelFormat),
             ];
             
-            $labels[$index] = $monitoring->recorded_at->format('H:i');
+            $labels[$index] = $monitoring->recorded_at->format($labelFormat);
         }
 
         // Draw area chart for Temperature (red fill)
@@ -205,18 +207,20 @@ class ChartService
             }
         }
 
-        // Draw data point dots - Larger and more visible
-        imagesetthickness($image, 1);
-        for ($i = 0; $i < count($points); $i++) {
-            // Temperature points - Larger red dots
-            imagefilledarc($image, (int)$points[$i]['x'], (int)$points[$i]['temp'], 6, 6, 0, 360, $redColor, IMG_ARC_PIE);
-            // Add white border
-            imagearc($image, (int)$points[$i]['x'], (int)$points[$i]['temp'], 6, 6, 0, 360, $white);
-            
-            // Humidity points - Larger blue dots
-            imagefilledarc($image, (int)$points[$i]['x'], (int)$points[$i]['hum'], 6, 6, 0, 360, $blueColor, IMG_ARC_PIE);
-            // Add white border
-            imagearc($image, (int)$points[$i]['x'], (int)$points[$i]['hum'], 6, 6, 0, 360, $white);
+        // Draw data point dots ONLY if data points are sparse (avoid overlapping/messy chart)
+        if ($pointCount <= 100) {
+            imagesetthickness($image, 1);
+            for ($i = 0; $i < count($points); $i++) {
+                // Temperature points - Larger red dots
+                imagefilledarc($image, (int)$points[$i]['x'], (int)$points[$i]['temp'], 6, 6, 0, 360, $redColor, IMG_ARC_PIE);
+                // Add white border
+                imagearc($image, (int)$points[$i]['x'], (int)$points[$i]['temp'], 6, 6, 0, 360, $white);
+                
+                // Humidity points - Larger blue dots
+                imagefilledarc($image, (int)$points[$i]['x'], (int)$points[$i]['hum'], 6, 6, 0, 360, $blueColor, IMG_ARC_PIE);
+                // Add white border
+                imagearc($image, (int)$points[$i]['x'], (int)$points[$i]['hum'], 6, 6, 0, 360, $white);
+            }
         }
 
         // Draw X-axis time labels (show every nth label to avoid crowding)
@@ -235,7 +239,7 @@ class ChartService
         imagestring($image, 2, 5, $topPadding - 5, 'SUHU', $redColor);
         
         // Right Y-axis label (Humidity)
-        imagestring($image, 2, $width - 40, $topPadding - 5, 'KELEMBAPAN', $blueColor);
+        imagestring($image, 2, $width - 80, $topPadding - 5, 'KELEMBAPAN', $blueColor);
 
         // Draw legend with modern styling - Dual Axis Legend
         $legendX = $width - 400;
@@ -254,7 +258,7 @@ class ChartService
         
         // Temperature legend (Left Axis)
         imagefilledrectangle($image, $legendX + 5, $legendY + 18, $legendX + 17, $legendY + 30, $redColor);
-        imagestring($image, 2, $legendX + 22, $legendY + 18, 'Suhu (°C)', $redColor);
+        imagestring($image, 2, $legendX + 22, $legendY + 18, 'Suhu (C)', $redColor);
 
         // Humidity legend (Right Axis)
         imagefilledrectangle($image, $legendX + 5, $legendY + 35, $legendX + 17, $legendY + 47, $blueColor);

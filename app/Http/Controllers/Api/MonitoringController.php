@@ -104,9 +104,9 @@ class MonitoringController extends Controller
                 $secondsAgo = ($diff->days * 86400) + ($diff->h * 3600) + ($diff->i * 60) + $diff->s;
                 $minutesAgo = round($secondsAgo / 60, 2);
                 
-                // Device terhubung jika data masuk dalam 10 detik
-                // (sesuai dengan timeout di getRealtimeLatest)
-                $isConnected = $secondsAgo <= 10;
+                // Device terhubung jika data masuk dalam 30 detik
+                // Arduino kirim tiap 10 detik, jadi 30 detik = toleransi 3x miss
+                $isConnected = $secondsAgo <= 30;
             }
 
             $data[] = [
@@ -184,27 +184,6 @@ class MonitoringController extends Controller
      * Get hourly chart data V2 - DYNAMIC (OPSI 1: Real-time murni, no padding)
      * Hanya menampilkan jam yang memiliki data
      * Tidak ada nilai 0 sebelum/sesudah data pertama masuk
-     * 
-     * Query params:
-     * - device_id: ID device (required)
-     * - date: Tanggal (format: Y-m-d, default: today)
-     * 
-     * Response: 
-     * {
-     *   "success": true,
-     *   "data": {
-     *     "start_hour": 8,
-     *     "end_hour": 16,
-     *     "first_data_time": "2026-02-14T08:15:22+07:00",
-     *     "last_data_time": "2026-02-14T16:45:10+07:00",
-     *     "hours": [8, 9, 10, ...],
-     *     "labels": ["08:00", "09:00", ...],
-     *     "avg_temperatures": [27.5, 28.2, ...],
-     *     "max_temperatures": [29.5, 30.2, ...],
-     *     "min_temperatures": [25.5, 26.2, ...],
-     *     "avg_humidities": [55, 58, ...],
-     *   }
-     * }
      */
     public function getHourlyChartDataDynamic(Request $request)
     {
@@ -290,50 +269,21 @@ class MonitoringController extends Controller
         ], 200);
     }
 
-    /**
-     * Get real-time latest monitoring data for live dashboard
-     * Update setiap 1 detik dengan status ESP online/offline BERBASIS TIMESTAMP
-     * 
-     * GET /api/monitoring/realtime/latest?timeout=10
-     * timeout: Detik untuk menganggap device OFFLINE (default: 10 detik)
-     * 
-     * Response:
-     * {
-     *   "success": true,
-     *   "timestamp": "2026-02-14T10:30:45+07:00",
-     *   "data": [
-     *     {
-     *       "id": 1,
-     *       "device_name": "Ruang Bayi #1",
-     *       "esp_online": true,
-     *       "esp_status": "ONLINE | OFFLINE | DISCONNECTED",
-     *       "seconds_ago": 3,
-     *       "last_update": "2026-02-14T10:30:42+07:00",
-     *       "temperature": 27.5,
-     *       "humidity": 55,
-     *       ...
-     *     }
-     *   ]
-     * }
-     */
     public function getRealtimeLatest(Request $request)
     {
-        // Support filtering by device_id if provided
         $deviceId = $request->query('device_id');
-        $timeoutSeconds = (int)$request->query('timeout', 10); // Default 10 detik
+        $timeoutSeconds = (int)$request->query('timeout', 15); // Default 15 detik
         
         $query = Device::with(['monitorings' => function ($query) {
             $query->latest('recorded_at')->limit(1); // Selalu gunakan recorded_at
         }]);
         
-        // Filter by device_id if provided
         if ($deviceId) {
             $query->where('id', $deviceId);
         }
         
         $devices = $query->get();
         
-        // Get current time from DATABASE (bukan local PHP time yang bisa berbeda timezone)
         $dbNow = \DB::selectOne('SELECT NOW() as db_time');
         $serverTime = new \DateTime($dbNow->db_time);
         
@@ -342,8 +292,6 @@ class MonitoringController extends Controller
         foreach ($devices as $device) {
             $latestMonitoring = $device->monitorings->first();
             
-            // ESP Status detection: ONLINE jika recorded_at < timeoutSeconds 
-            // Status ini berlaku untuk SEMUA device (tidak hardcoded untuk device 3,4,5)
             $isOnline = false;
             $lastUpdateTime = null;
             $secondsAgo = null;
@@ -352,12 +300,9 @@ class MonitoringController extends Controller
             
             if ($latestMonitoring) {
                 $lastUpdateTime = $latestMonitoring->recorded_at;
-                // PENTING: Gunakan DATABASE TIME, bukan local PHP time!
-                // Hitung selisih: database_now - recorded_time
                 $diff = $serverTime->diff($lastUpdateTime);
                 $secondsAgo = ($diff->days * 86400) + ($diff->h * 3600) + ($diff->i * 60) + $diff->s;
                 
-                // Semua device menggunakan logika yang sama
                 if ($secondsAgo <= $timeoutSeconds) {
                     $isOnline = true;
                     $statusMessage = 'ONLINE';
@@ -373,7 +318,6 @@ class MonitoringController extends Controller
                 }
             }
 
-            // Determine temperature status
             $tempStatus = 'safe';  // hijau
             if ($latestMonitoring) {
                 if ($latestMonitoring->temperature >= 30) {
@@ -384,7 +328,6 @@ class MonitoringController extends Controller
                 }
             }
 
-            // Determine humidity status
             $humidityStatus = 'safe'; // biru
             if ($latestMonitoring) {
                 if ($latestMonitoring->humidity >= 60) {
@@ -397,19 +340,15 @@ class MonitoringController extends Controller
                 'device_id' => $device->device_id,
                 'device_name' => $device->device_name,
                 'location' => $device->location,
-                // Temperature data
                 'temperature' => $latestMonitoring ? $latestMonitoring->temperature : null,
-                'temp_status' => $tempStatus, // safe, warning, danger
-                // Humidity data
+                'temp_status' => $tempStatus,
                 'humidity' => $latestMonitoring ? $latestMonitoring->humidity : null,
-                'humidity_status' => $humidityStatus, // safe, warning
-                // ESP Connection Status - PENTING: Berbasis timestamp, tidak hardcoded
+                'humidity_status' => $humidityStatus,
                 'esp_online' => $isOnline,
-                'esp_status' => $statusMessage, // ONLINE, OFFLINE, DISCONNECTED
+                'esp_status' => $statusMessage,
                 'esp_status_color' => $statusColor,
-                'seconds_ago' => $secondsAgo, // Untuk debugging & real-time display
+                'seconds_ago' => $secondsAgo,
                 'last_update' => $lastUpdateTime ? $lastUpdateTime->toIso8601String() : null,
-                // Overall monitoring status
                 'monitoring_status' => $latestMonitoring ? $latestMonitoring->status : null,
             ];
         }
@@ -422,12 +361,6 @@ class MonitoringController extends Controller
         ], 200);
     }
 
-    /**
-     * REAL-TIME METHOD: Get latest data untuk indicators
-     * Usage: fetch('/api/monitoring/get-latest?device_id=1')
-     * Response time: < 100ms
-     * Update interval: 2 detik di frontend
-     */
     public function getLatestSimple(Request $request)
     {
         $deviceId = $request->get('device_id');
@@ -455,12 +388,6 @@ class MonitoringController extends Controller
         ], 200);
     }
 
-    /**
-     * REAL-TIME METHOD: Get chart data untuk live chart update
-     * Usage: fetch('/api/monitoring/get-chart-data?device_id=1&timeframe=1_hour')
-     * Response time: < 200ms
-     * Update interval: 5 detik di frontend
-     */
     public function getChartDataSimple(Request $request)
     {
         $deviceId = $request->get('device_id');
@@ -470,7 +397,6 @@ class MonitoringController extends Controller
             return response()->json(['success' => false, 'message' => 'device_id required'], 400);
         }
         
-        // Calculate date range
         $now = \Carbon\Carbon::now();
         $startDate = match($timeframe) {
             '10_min'  => $now->copy()->subMinutes(10),
@@ -482,13 +408,11 @@ class MonitoringController extends Controller
             default   => $now->copy()->subHour(),
         };
         
-        // Query data
         $monitorings = Monitoring::where('device_id', $deviceId)
             ->whereBetween('recorded_at', [$startDate, $now])
             ->orderBy('recorded_at', 'ASC')
             ->get();
         
-        // Format for chart
         $temperatures = [];
         $humidities = [];
         $timestamps = [];
@@ -514,27 +438,6 @@ class MonitoringController extends Controller
         ], 200);
     }
 
-    /**
-     * Get semua devices yang tersedia
-     * Digunakan untuk auto-populate device selector di dropdown
-     * Akan otomatis menambah device baru ketika created
-     * 
-     * GET /api/monitoring/devices
-     * 
-     * Response:
-     * {
-     *   "success": true,
-     *   "data": [
-     *     {
-     *       "id": 1,
-     *       "device_id": "DEVICE_ABC123",
-     *       "device_name": "Ruangan A1",
-     *       "location": "Lantai 1"
-     *     },
-     *     ...
-     *   ]
-     * }
-     */
     public function getAllDevices()
     {
         $devices = Device::all(['id', 'device_name', 'location', 'device_id']);

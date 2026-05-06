@@ -9,6 +9,8 @@
     <!-- Favicon Medical Icon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='grad1' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%23ff6b6b;stop-opacity:1' /><stop offset='100%' style='stop-color:%234ecdc4;stop-opacity:1' /></linearGradient></defs><rect width='100' height='100' fill='white'/><g transform='translate(50,50)'><circle cx='0' cy='0' r='45' fill='url(%23grad1)' opacity='0.1' stroke='url(%23grad1)' stroke-width='2'/><path d='M -8,-25 L -8,5 C -8,10 -4,15 0,15 C 4,15 8,10 8,5 L 8,-25 C 8,-28 5,-30 0,-30 C -5,-30 -8,-28 -8,-25 Z' fill='%23ff6b6b'/><circle cx='0' cy='-22' r='3' fill='%23ff6b6b'/><path d='M -0.5,-8 L 0.5,-8 L 0.5,-2 C 0.5,0 -0.5,0 -0.5,-2 Z' fill='%23fff' opacity='0.6'/><path d='M 12,-10 Q 18,-15 20,-8 Q 18,0 12,5 Q 15,0 12,-10 Z' fill='%234ecdc4'/></g></svg>" />
     
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -18,14 +20,14 @@
     
     <style>
         :root {
-            --primary: #667eea;
-            --primary-dark: #764ba2;
-            --primary-light: #f093fb;
-            --success: #51cf66;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --info: #3498db;
-            --dark: #2d3436;
+            --primary: #0d6efd;
+            --primary-dark: #0a58ca;
+            --primary-light: #e0f2ff;
+            --success: #198754;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #0dcaf0;
+            --dark: #212529;
             --light: #f8f9fa;
             --border-radius: 12px;
         }
@@ -35,17 +37,19 @@
         }
 
         body {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: var(--dark);
+            background-color: #f4f7f6;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #2d3748;
         }
 
         /* Navbar Enhancement - MEDICAL DASHBOARD THEME */
         .navbar {
-            box-shadow: 0 2px 12px rgba(0, 86, 179, 0.1) !important;
-            background: linear-gradient(135deg, #0056b3 0%, #003d82 100%) !important;
-            border-bottom: 2px solid #0056b3;
-            padding: 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+            background: linear-gradient(135deg, rgba(13, 110, 253, 0.95) 0%, rgba(0, 86, 179, 0.95) 100%) !important;
+            border-bottom: none;
+            padding: 8px 0;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .navbar-brand {
@@ -307,36 +311,31 @@
 
         /* Sidebar Enhancement - FIXED POSITIONING */
         .sidebar {
-            background: white;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.06);
-            
-            /* CRITICAL: Fixed positioning untuk navbar tetap diam */
+            background: #ffffff;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.03);
             position: fixed;
             left: 0;
-            top: 59px;  /* Sesuaikan dengan tinggi navbar atas (kurang lebih 59px untuk Bootstrap navbar) */
+            top: 66px; /* Adjusted for slightly taller navbar */
             bottom: 0;
-            width: 16.66%;  /* Width col-md-2 dari Bootstrap (2/12) */
-            
-            /* Scrollable area dalam sidebar */
+            width: 16.66%;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 20px 0;
-            
-            /* Z-index lebih rendah dari navbar */
+            padding: 24px 16px;
             z-index: 900;
-            
-            /* Smooth scrolling */
             scroll-behavior: smooth;
+            border-right: 1px solid rgba(0,0,0,0.03);
         }
 
         .sidebar .nav-link {
-            color: #636e72;
-            border-left: 3px solid transparent;
-            border-radius: 0 12px 12px 0;
-            margin: 8px 0;
-            padding: 12px 16px;
-            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            font-weight: 500;
+            color: #4a5568;
+            border-radius: 12px;
+            margin: 6px 0;
+            padding: 12px 18px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
         }
 
         .sidebar .nav-link i {
@@ -346,23 +345,23 @@
         }
 
         .sidebar .nav-link:hover {
-            background: linear-gradient(90deg, rgba(102, 126, 234, 0.08) 0%, rgba(102, 126, 234, 0.04) 100%);
+            background: linear-gradient(90deg, rgba(13, 110, 253, 0.08) 0%, rgba(13, 110, 253, 0.04) 100%);
             color: var(--primary);
             border-left-color: var(--primary);
             transform: translateX(4px);
         }
 
         .sidebar .nav-link.active {
-            background: linear-gradient(90deg, rgba(102, 126, 234, 0.12) 0%, rgba(102, 126, 234, 0.06) 100%);
+            background: linear-gradient(90deg, rgba(13, 110, 253, 0.12) 0%, rgba(13, 110, 253, 0.06) 100%);
             color: var(--primary);
             border-left-color: var(--primary);
             font-weight: 600;
-            box-shadow: inset 0 2px 4px rgba(102, 126, 234, 0.1);
+            box-shadow: inset 0 2px 4px rgba(13, 110, 253, 0.1);
         }
 
         /* Card Enhancement */
         .card {
-            border: 1px solid rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(13, 110, 253, 0.1);
             box-shadow: 0 4px 16px rgba(0,0,0,0.06);
             border-radius: var(--border-radius);
             transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -371,18 +370,20 @@
 
         .card:hover {
             box-shadow: 0 12px 32px rgba(0,0,0,0.12);
-            border-color: rgba(102, 126, 234, 0.2);
+            border-color: rgba(13, 110, 253, 0.2);
             transform: translateY(-4px);
         }
 
         .card-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius) var(--border-radius) 0 0;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            padding: 16px 20px;
+            background: transparent;
+            color: var(--dark);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            border-radius: 16px 16px 0 0 !important;
+            font-weight: 700;
+            padding: 20px 24px;
+        }
+        .card-header i {
+            color: var(--primary);
         }
 
         .card-header i {
@@ -408,7 +409,7 @@
         .btn-primary {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
         }
 
         .btn-primary::before {
@@ -428,7 +429,7 @@
 
         .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 24px rgba(13, 110, 253, 0.4);
         }
 
         .btn-primary:active {
@@ -533,7 +534,7 @@
         }
 
         .table thead {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(102, 126, 234, 0.04) 100%);
+            background: linear-gradient(135deg, rgba(13, 110, 253, 0.08) 0%, rgba(13, 110, 253, 0.04) 100%);
         }
 
         .table thead th {
@@ -542,7 +543,7 @@
             font-weight: 700;
             letter-spacing: 0.5px;
             padding: 14px 16px;
-            border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+            border-bottom: 2px solid rgba(13, 110, 253, 0.1);
         }
 
         .table tbody tr {
@@ -551,7 +552,7 @@
         }
 
         .table tbody tr:hover {
-            background-color: rgba(102, 126, 234, 0.04);
+            background-color: rgba(13, 110, 253, 0.04);
         }
 
         .table tbody td {
@@ -583,31 +584,51 @@
         }
 
         .alert-danger {
-            background: linear-gradient(135deg, rgba(231, 76, 60, 0.08) 0%, rgba(192, 57, 43, 0.06) 100%);
-            border-color: rgba(231, 76, 60, 0.2);
-            color: #c0392b;
-            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.12);
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-color: #fca5a5;
+            color: #991b1b;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
         }
 
         .alert-success {
-            background: linear-gradient(135deg, rgba(81, 207, 102, 0.08) 0%, rgba(64, 192, 87, 0.06) 100%);
-            border-color: rgba(81, 207, 102, 0.2);
-            color: #27ae60;
-            box-shadow: 0 4px 12px rgba(81, 207, 102, 0.12);
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            border-color: #86efac;
+            color: #166534;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);
         }
 
         .alert-warning {
-            background: linear-gradient(135deg, rgba(243, 156, 18, 0.08) 0%, rgba(230, 126, 34, 0.06) 100%);
-            border-color: rgba(243, 156, 18, 0.2);
-            color: #d68910;
-            box-shadow: 0 4px 12px rgba(243, 156, 18, 0.12);
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-color: #fcd34d;
+            color: #92400e;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15);
         }
 
         .alert-info {
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.08) 0%, rgba(41, 128, 185, 0.06) 100%);
-            border-color: rgba(52, 152, 219, 0.2);
-            color: #2980b9;
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.12);
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            border-color: #7dd3fc;
+            color: #075985;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+        }
+
+        /* Global Alert Styling for Mobile Responsiveness */
+        .global-alert {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1080;
+            width: 320px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 576px) {
+            .global-alert {
+                top: 70px;
+                left: 5%;
+                width: 90%;
+                right: auto;
+            }
         }
 
         /* Form Controls Enhancement */
@@ -633,7 +654,7 @@
             outline: none;
             border-color: var(--primary);
             background: white;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.12), 0 0 0 8px rgba(102, 126, 234, 0.06), inset 0 2px 4px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.12), 0 0 0 8px rgba(13, 110, 253, 0.06), inset 0 2px 4px rgba(0, 0, 0, 0.02);
             transform: translateY(-1px);
         }
 
@@ -667,7 +688,7 @@
         /* Device Card Enhancement */
         .device-card {
             background: white;
-            border: 1px solid rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(13, 110, 253, 0.1);
             box-shadow: 0 4px 16px rgba(0,0,0,0.06);
             border-radius: var(--border-radius);
             transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -676,7 +697,7 @@
 
         .device-card:hover {
             box-shadow: 0 12px 32px rgba(0,0,0,0.12);
-            border-color: rgba(102, 126, 234, 0.2);
+            border-color: rgba(13, 110, 253, 0.2);
             transform: translateY(-4px);
         }
 
@@ -725,17 +746,20 @@
         .clock-display {
             font-size: 1.1rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: white;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            padding: 5px 18px;
+            border-radius: 30px;
             letter-spacing: 1px;
-            min-width: 180px;
-            text-align: right;
+            min-width: 140px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: inline-block;
         }
 
         .clock-display i {
-            color: var(--primary);
+            color: white;
             margin-right: 8px;
         }
 
@@ -809,7 +833,7 @@
                 position: absolute;
                 left: -100%;
                 width: 100%;
-                top: 59px;
+                top: 66px;
             }
 
             /* Responsive Navbar */
@@ -878,41 +902,186 @@
                 font-size: 20px;
             }
         }
-    </style>
+    
+        /* --- GLOBAL ANIMATIONS --- */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card, .alert, .table-responsive {
+            animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+
+        .row > div:nth-child(1) > .card { animation-delay: 0.05s; }
+        .row > div:nth-child(2) > .card { animation-delay: 0.1s; }
+        .row > div:nth-child(3) > .card { animation-delay: 0.15s; }
+        .row > div:nth-child(4) > .card { animation-delay: 0.2s; }
+
+        .btn {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .device-card {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .device-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
+        }
+
+        /* Animasi pada Sidebar items */
+        .sidebar-nav .sidebar-item {
+            transition: all 0.3s ease;
+        }
+        .sidebar-nav .sidebar-item:hover {
+            transform: translateX(5px);
+        }
+        
+        /* Efek klik (Active) pada tombol */
+        .btn:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+</style>
 
     <!-- Real-Time Indicators CSS -->
     <style>
         /* Removed - indicators simplified */
-    </style>
+    
+        /* --- GLOBAL ANIMATIONS --- */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card, .alert, .table-responsive {
+            animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+
+        .row > div:nth-child(1) > .card { animation-delay: 0.05s; }
+        .row > div:nth-child(2) > .card { animation-delay: 0.1s; }
+        .row > div:nth-child(3) > .card { animation-delay: 0.15s; }
+        .row > div:nth-child(4) > .card { animation-delay: 0.2s; }
+
+        .btn {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .device-card {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .device-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
+        }
+
+        /* Animasi pada Sidebar items */
+        .sidebar-nav .sidebar-item {
+            transition: all 0.3s ease;
+        }
+        .sidebar-nav .sidebar-item:hover {
+            transform: translateX(5px);
+        }
+        
+        /* Efek klik (Active) pada tombol */
+        .btn:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+</style>
     
 </head>
 <body>
-    <!-- ESP Connection Alerts (MASALAH 2: Notifikasi global untuk semua halaman) -->
-    <div id="espConnectedAlert" class="alert alert-success alert-dismissible fade show d-none" role="alert" style="position: fixed; top: 80px; right: 20px; z-index: 1050; width: 300px;">
-        <i class="fas fa-check-circle me-2"></i> <strong>✅ Koneksi ESP Berhasil!</strong>
-        <p class="mb-0 mt-2">ESP8266 telah terhubung dan mulai mengirim data monitoring.</p>
+    <!-- ESP Connection Alerts (Global) -->
+    <div id="espConnectedAlert" class="alert alert-success alert-dismissible fade show d-none global-alert" role="alert">
+        <i class="fas fa-check-circle me-2"></i> <strong id="espConnectedMessage">✅ Koneksi ESP Berhasil!</strong>
+        <p class="mb-0 mt-2" style="font-size: 0.85rem;">Sistem telah terhubung dan menerima data monitoring terbaru.</p>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     
-    <div id="espDisconnectedAlert" class="alert alert-danger alert-dismissible fade show d-none" role="alert" style="position: fixed; top: 80px; right: 20px; z-index: 1050; width: 300px;">
-        <i class="fas fa-exclamation-triangle me-2"></i> <strong>⚠️ ESP Putus Koneksi!</strong>
-        <p class="mb-0 mt-2">ESP8266 tidak merespons dalam 5+ detik. Periksa koneksi WiFi atau power supply.</p>
+    <div id="espDisconnectedAlert" class="alert alert-danger alert-dismissible fade show d-none global-alert" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> <strong id="espDisconnectedMessage">⚠️ ESP Putus Koneksi!</strong>
+        <p class="mb-0 mt-2" style="font-size: 0.85rem;">Perangkat tidak merespons. Periksa koneksi WiFi atau power supply.</p>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     
-    <!-- Container utama -->
-    <div class="container-fluid">
-        <!-- Navbar - STICKY: Tetap terlihat saat scroll -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-white" style="position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <div class="container-fluid">
-            <a class="navbar-brand" href="{{ route('dashboard') }}">
-                <i class="fas fa-heartbeat text-primary"></i> Monitoring Bayi
+    <!-- Navbar - STICKY: Tetap terlihat saat scroll -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="position: sticky; top: 0; z-index: 1000;">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white fw-bold" href="{{ route('dashboard') }}">
+                <i class="fas fa-heartbeat text-white me-2"></i> Monitoring Bayi
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <!-- Mobile Main Navigation (Only visible on small screens) -->
+                    @auth
+                    <li class="nav-item d-md-none">
+                        <a class="nav-link {{ request()->routeIs('dashboard*') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                            <i class="fas fa-chart-line"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item d-md-none">
+                        <a class="nav-link {{ request()->routeIs('monitoring*') ? 'active' : '' }}" href="{{ route('monitoring.history') }}">
+                            <i class="fas fa-history"></i> Riwayat
+                        </a>
+                    </li>
+                    <li class="nav-item d-md-none">
+                        <a class="nav-link {{ request()->routeIs('monitoring.chart') ? 'active' : '' }}" href="{{ route('monitoring.chart') }}">
+                            <i class="fas fa-chart-area"></i> Grafik
+                        </a>
+                    </li>
+                    <li class="nav-item d-md-none">
+                        <a class="nav-link {{ request()->routeIs('monitoring.hourly-trend') ? 'active' : '' }}" href="{{ route('monitoring.hourly-trend') }}">
+                            <i class="fas fa-chart-simple"></i> Tren Harian
+                        </a>
+                    </li>
+                    <li class="nav-item d-md-none">
+                        <a class="nav-link {{ request()->routeIs('help*') ? 'active' : '' }}" href="{{ route('help.index') }}">
+                            <i class="fas fa-question-circle"></i> Bantuan & Panduan
+                        </a>
+                    </li>
+                    @if(auth()->user()->role === 'admin')
+                    <li class="nav-item d-md-none border-bottom mb-2 pb-2">
+                        <a class="nav-link {{ request()->routeIs('device*') ? 'active' : '' }}" href="{{ route('device.index') }}">
+                            <i class="fas fa-microchip"></i> Manajemen Device
+                        </a>
+                    </li>
+                    <li class="nav-item d-md-none border-bottom mb-2 pb-2">
+                        <a class="nav-link {{ request()->routeIs('admin.users*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+                            <i class="fas fa-users-cog"></i> Manajemen User
+                        </a>
+                    </li>
+                    @else
+                    <li class="nav-item d-md-none border-bottom mb-2 pb-2"></li>
+                    @endif
+                    @endauth
+
                     <!-- Clock - Simple & Reliable -->
                     <li class="nav-item me-3 d-flex align-items-center">
                         <div class="clock-display">
@@ -1040,7 +1209,7 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('monitoring.hourly-trend') ? 'active' : '' }}" href="{{ route('monitoring.hourly-trend') }}">
-                                <i class="fas fa-chart-candle"></i> Tren Harian
+                                <i class="fas fa-chart-simple"></i> Tren Harian
                             </a>
                         </li>
                         <li class="nav-item">
@@ -1052,6 +1221,11 @@
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('device*') ? 'active' : '' }}" href="{{ route('device.index') }}">
                                 <i class="fas fa-microchip"></i> Manajemen Device
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.users*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+                                <i class="fas fa-users-cog"></i> Manajemen User
                             </a>
                         </li>
                         @endif

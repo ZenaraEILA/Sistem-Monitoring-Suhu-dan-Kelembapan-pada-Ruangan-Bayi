@@ -3,7 +3,7 @@ File: resources/views/admin/users/index.blade.php
 GET /admin/users
 --}}
 
-@extends('layouts.app')
+@extends('layouts.main')
 
 @section('content')
 <div class="container-fluid p-4">
@@ -14,6 +14,11 @@ GET /admin/users
                 <i class="fas fa-users"></i> Manajemen User
             </h1>
             <p class="text-muted">Kelola akun user dan ubah role sesuai kebutuhan</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Tambah User Baru
+            </a>
         </div>
     </div>
 

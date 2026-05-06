@@ -25,17 +25,58 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|min:6',
+            'username' => 'nullable|string',
+            'hospital_id' => 'nullable|string',
+            'email' => 'nullable|string',
+            'login_method' => 'required|in:password,code',
+            'credential' => 'required|string',
         ]);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
 
-        $credentials = $request->only('email', 'password');
+        if (!$request->filled('username') && !$request->filled('hospital_id') && !$request->filled('email')) {
+            return back()->with('error', 'Silakan masukkan salah satu identitas: Username, NISN, atau Email.')->withInput();
+        }
 
-        if (Auth::attempt($credentials)) {
+        $method = $request->login_method;
+        $credential = $request->credential;
+
+        // Find the user by whichever identifier was provided
+        $query = User::query();
+        if ($request->filled('username')) {
+            $query->where('username', $request->username);
+        } elseif ($request->filled('hospital_id')) {
+            $query->where('hospital_id', $request->hospital_id);
+        } elseif ($request->filled('email')) {
+            $query->where('email', $request->email);
+        }
+
+        $user = $query->first();
+
+        if (!$user) {
+            return back()->with('error', 'Akun tidak ditemukan.')->withInput();
+        }
+
+        if (!$user->isActive()) {
+            return back()->with('error', 'Akun Anda dinonaktifkan. Silakan hubungi Admin.')->withInput();
+        }
+
+        $authenticated = false;
+
+        if ($method === 'password') {
+            if (Hash::check($credential, $user->password)) {
+                $authenticated = true;
+            }
+        } elseif ($method === 'code') {
+            if ($user->security_code && $credential === $user->security_code) {
+                $authenticated = true;
+            }
+        }
+
+        if ($authenticated) {
+            Auth::login($user);
             $request->session()->regenerate();
 
             // Record login log
@@ -48,7 +89,7 @@ class AuthController extends Controller
             return redirect()->route('dashboard')->with('success', 'Login berhasil!');
         }
 
-        return back()->with('error', 'Email atau password salah.')->withInput();
+        return back()->with('error', 'Password atau Code Keamanan salah.')->withInput();
     }
 
     /**
@@ -63,37 +104,4 @@ class AuthController extends Controller
         return redirect()->route('login')->with('success', 'Anda telah logout.');
     }
 
-    /**
-     * Show register form (for initial setup only).
-     */
-    public function showRegister()
-    {
-        return view('auth.register');
-    }
-
-    /**
-     * Handle register request.
-     */
-    public function register(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6|confirmed',
-            'role' => 'required|in:admin,petugas',
-        ]);
-
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
-        }
-
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-        ]);
-
-        return redirect()->route('login')->with('success', 'Registrasi berhasil. Silakan login.');
-    }
 }

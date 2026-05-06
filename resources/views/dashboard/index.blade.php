@@ -15,23 +15,11 @@
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 
-<!-- ESP8266 Connected Notification -->
-<div id="espConnectedAlert" class="alert alert-success alert-dismissible fade show d-none" role="alert">
-    <i class="fas fa-check-circle me-2"></i>
-    <span id="espConnectedMessage">ESP8266 TERHUBUNG - Data diterima</span>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-
-<!-- ESP8266 Disconnected Notification -->
-<div id="espDisconnectedAlert" class="alert alert-danger alert-dismissible fade show d-none" role="alert">
-    <i class="fas fa-exclamation-circle me-2"></i>
-    <span id="espDisconnectedMessage">ESP8266 TIDAK TERHUBUNG - Periksa koneksi WiFi</span>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
+<!-- Global connection alerts are handled in layouts/main.blade.php -->
 
 <div class="row mb-4">
     <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
             <h1 class="h3 mb-0"><i class="fas fa-chart-line"></i> Dashboard Monitoring</h1>
             <small class="text-muted">
                 <i class="fas fa-sync-alt" id="refreshSpinner"></i> 
@@ -62,162 +50,118 @@
 </div>
 @endif
 
-<!-- All Devices Status Indicator -->
-@include('partials.devices-status')
-
-<!-- Daily Summary -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <h6 class="card-title mb-3"><i class="fas fa-calendar-day"></i> Ringkasan Hari Ini</h6>
-                <div class="row text-center">
-                    <div class="col-md-4">
-                        <div class="summary-item">
-                            <div class="summary-value text-danger">{{ $todayUnsafeCount }}</div>
-                            <div class="summary-label">Kejadian Tidak Normal</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="summary-item">
-                            <div class="summary-value text-success">{{ count($devices) }}</div>
-                            <div class="summary-label">Total Ruangan Terpantau</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="summary-item">
-                            <div class="summary-value text-info">{{ $safeCount }}</div>
-                            <div class="summary-label">Ruangan dalam Kondisi Normal</div>
-                        </div>
-                    </div>
-                </div>
-                @if($todayUnsafeCount > 0)
-                    <div class="alert alert-warning mt-3 mb-0">
-                        <small><strong>Detail kejadian tidak normal:</strong></small><br>
-                        @foreach($unsafeByDevice as $deviceName => $count)
-                            <small>• {{ $deviceName }}: {{ $count }} kali</small><br>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card border-left-primary">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-1">Status Aman</h6>
-                        <h2 class="mb-0">{{ $safeCount }}</h2>
-                    </div>
-                    <div class="text-success" style="font-size: 3rem; opacity: 0.3;">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card border-left-danger">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-1">Status Tidak Aman</h6>
-                        <h2 class="mb-0" style="color: #dc3545;">{{ $unsafeCount }}</h2>
-                    </div>
-                    <div class="text-danger" style="font-size: 3rem; opacity: 0.3;">
-                        <i class="fas fa-exclamation-circle"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Export Laporan Section -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm bg-light">
-            <div class="card-body py-3">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <div>
-                        <h6 class="mb-0 fw-bold"><i class="fas fa-download"></i> Export Laporan Monitoring</h6>
-                        <small class="text-muted">Unduh laporan dalam bentuk PDF atau Excel untuk dokumentasi medis</small>
-                    </div>
-                    <a href="{{ route('reports.index') }}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-file-export"></i> Manage Export »
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Devices Monitoring -->
 <div class="row" id="devicesContainer">
     @forelse($devices as $device)
-    <div class="col-md-6 col-lg-4 mb-4 device-monitor" data-device-id="{{ $device->id }}">
-        <div class="device-card card h-100">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">{{ $device->device_name }}</h5>
-                    <span class="badge device-status-badge {{ $device->monitorings->count() > 0 && $device->monitorings->first()->status === 'Aman' ? 'badge-aman' : 'badge-tidak-aman' }}">
+    <div class="col-12 mb-4 device-monitor" data-device-id="{{ $device->id }}">
+        <div class="row">
+            <!-- Kolom Kiri: Kartu Status Ruangan -->
+            <div class="col-lg-4 mb-4 mb-lg-0">
+                <div class="device-card card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+            <div class="card-header border-0 py-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-door-closed me-2 text-white-50"></i>{{ $device->device_name }}</h5>
+                    <span class="badge rounded-pill device-status-badge {{ $device->monitorings->count() > 0 && $device->monitorings->first()->status === 'Aman' ? 'badge-aman' : 'badge-tidak-aman' }} border border-light">
                         <span class="device-status-text">{{ $device->monitorings->count() > 0 ? $device->monitorings->first()->status : 'No Data' }}</span>
                     </span>
                 </div>
                 <small class="text-white-50"><i class="fas fa-map-marker-alt"></i> {{ $device->location }}</small>
             </div>
 
-            <!-- Connection Status Indicator -->
-            <div class="card-header bg-light border-top">
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted">
-                        <i class="fas fa-wifi device-connection-icon" style="color: #dc3545;"></i>
-                        <span class="device-connection-status">TIDAK TERHUBUNG</span>
-                    </small>
-                    <small class="text-muted device-last-update">
+            <div class="card-body pt-3 pb-4 px-4">
+                <!-- Connection Status Indicator -->
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: #f8f9fa;">
+                            <i class="fas fa-wifi device-connection-icon" style="color: #9ca3af;"></i>
+                        </div>
+                        <span class="live-dot disconnected"></span>
+                         <span class="device-connection-status fw-bold text-dark" style="font-size: 0.85rem;">TIDAK TERHUBUNG</span>
+                    </div>
+                    <small class="text-muted device-last-update" style="font-size: 0.75rem;">
                         loading...
                     </small>
                 </div>
-            </div>
 
-            <div class="card-body">
                 @if($device->monitorings->count() > 0)
                     @php
                         $monitoring = $device->monitorings->first();
+                        
+                        // Check if device is connected
+                        $is_connected = false;
+                        if ($monitoring) {
+                            $dbNow = \DB::selectOne('SELECT NOW() as db_time');
+                            $serverTime = new \DateTime($dbNow->db_time);
+                            $diff = $serverTime->diff($monitoring->recorded_at);
+                            $secondsAgo = ($diff->days * 86400) + ($diff->h * 3600) + ($diff->i * 60) + $diff->s;
+                            $is_connected = $secondsAgo <= 15;
+                        }
                     @endphp
-                    <div class="row text-center mb-3">
-                        <div class="col-6">
-                            <small class="text-muted d-block">Suhu</small>
-                            <div class="temp-display device-temperature {{ $monitoring->temperature < 15 || $monitoring->temperature > 30 ? 'text-danger' : 'text-success' }}">
-                                <span class="device-temp-value">{{ number_format($monitoring->temperature, 1) }}</span>°C
+                    <div class="row text-center mb-4">
+                        <div class="col-6 border-end">
+                            <div class="text-muted mb-1" style="font-size: 0.85rem;"><i class="fas fa-temperature-half me-1"></i>Suhu</div>
+                            <div class="temp-display device-temperature">
+                                <span id="temp-val-{{ $device->id }}" class="device-temp-value fw-bold" style="font-size:2.2rem; color:{{ $monitoring->temperature < 15 || $monitoring->temperature > 30 ? '#dc3545' : '#198754' }};">{{ $is_connected ? number_format($monitoring->temperature, 1) : '0' }}</span><span class="fs-5" style="color:{{ $monitoring->temperature < 15 || $monitoring->temperature > 30 ? '#dc3545' : '#198754' }};">°C</span>
                             </div>
-                            <small class="text-success">✓ Normal: 15-30°C</small>
+                            <div class="mt-1">
+                                <span class="badge bg-light text-secondary border"><i class="fas fa-info-circle"></i> 15-30°C</span>
+                            </div>
                         </div>
                         <div class="col-6">
-                            <small class="text-muted d-block">Kelembapan</small>
-                            <div class="humidity-display device-humidity {{ $monitoring->humidity < 35 || $monitoring->humidity > 60 ? 'text-danger' : 'text-success' }}">
-                                <span class="device-humidity-value">{{ number_format($monitoring->humidity, 1) }}</span>%
+                            <div class="text-muted mb-1" style="font-size: 0.85rem;"><i class="fas fa-droplet me-1"></i>Kelembapan</div>
+                            <div class="humidity-display device-humidity">
+                                <span id="hum-val-{{ $device->id }}" class="device-humidity-value fw-bold" style="font-size:2.2rem; color:{{ $monitoring->humidity < 35 || $monitoring->humidity > 60 ? '#dc3545' : '#198754' }};">{{ $is_connected ? number_format($monitoring->humidity, 1) : '0' }}</span><span class="fs-5" style="color:{{ $monitoring->humidity < 35 || $monitoring->humidity > 60 ? '#dc3545' : '#198754' }};">%</span>
                             </div>
-                            <small class="text-success">✓ Normal: 35-60%</small>
+                            <div class="mt-1">
+                                <span class="badge bg-light text-secondary border"><i class="fas fa-info-circle"></i> 35-60%</span>
+                            </div>
                         </div>
                     </div>
-                    <hr>
+                    
+                    <!-- Hardware Status -->
+                    @php
+                        $temp = $monitoring ? $monitoring->temperature : 25;
+                        
+                        $fan1_on = $is_connected && $temp >= 28;
+                        $fan2_on = $is_connected && $temp > 30;
+                        $heater_on = $is_connected && $temp < 28;
+                    @endphp
+                    <div class="row text-center mb-4 border-top pt-3 mx-0">
+                        <div class="col-4 border-end px-1">
+                            <div class="text-muted mb-2 text-truncate" style="font-size: 0.75rem; font-weight: 600;">Kipas 1</div>
+                            <div class="device-fan-1 mb-2">
+                                <i class="fas fa-fan fs-3 fan-icon {{ $fan1_on ? 'fan-spin text-primary' : 'text-secondary opacity-50' }}" id="fan1-icon-{{ $device->id }}"></i>
+                            </div>
+                            <span class="badge {{ $fan1_on ? 'bg-primary' : 'bg-secondary' }}" style="font-size: 0.65rem;" id="fan1-badge-{{ $device->id }}">{{ $fan1_on ? 'NYALA' : 'MATI' }}</span>
+                        </div>
+                        <div class="col-4 border-end px-1">
+                            <div class="text-muted mb-2 text-truncate" style="font-size: 0.75rem; font-weight: 600;">Kipas 2</div>
+                            <div class="device-fan-2 mb-2">
+                                <i class="fas fa-fan fs-3 fan-icon {{ $fan2_on ? 'fan-spin text-primary' : 'text-secondary opacity-50' }}" id="fan2-icon-{{ $device->id }}"></i>
+                            </div>
+                            <span class="badge {{ $fan2_on ? 'bg-primary' : 'bg-secondary' }}" style="font-size: 0.65rem;" id="fan2-badge-{{ $device->id }}">{{ $fan2_on ? 'NYALA' : 'MATI' }}</span>
+                        </div>
+                        <div class="col-4 px-1">
+                            <div class="text-muted mb-2 text-truncate" style="font-size: 0.75rem; font-weight: 600;">Penghangat</div>
+                            <div class="device-heater mb-2">
+                                <i class="fas fa-lightbulb fs-3 heater-icon {{ $heater_on ? 'lamp-glow text-warning' : 'text-secondary opacity-50' }}" id="heater-icon-{{ $device->id }}"></i>
+                            </div>
+                            <span class="badge {{ $heater_on ? 'bg-warning text-dark' : 'bg-secondary' }}" style="font-size: 0.65rem;" id="heater-badge-{{ $device->id }}">{{ $heater_on ? 'NYALA' : 'MATI' }}</span>
+                        </div>
+                    </div>
                     
                     <!-- Recommendations -->
                     @php
                         $recommendations = $monitoring->recommendation_list;
                     @endphp
                     @if(count($recommendations) > 0)
-                        <div class="alert alert-warning mb-3 py-2 px-3">
-                            <small><strong>Rekomendasi Tindakan:</strong></small><br>
+                        <div class="alert alert-danger mb-4 py-2 px-3 border-0" style="background-color: #fff5f5; border-left: 4px solid #dc3545 !important;">
+                            <small class="fw-bold text-danger"><i class="fas fa-exclamation-triangle me-1"></i> Rekomendasi Tindakan:</small>
+                            <ul class="mb-0 mt-1 ps-3 text-danger" style="font-size: 0.85rem;">
                             @foreach($recommendations as $rec)
-                                <small>• {{ $rec }}</small><br>
+                                <li>{{ $rec }}</li>
                             @endforeach
+                            </ul>
                         </div>
                     @endif
 
@@ -226,52 +170,99 @@
 
                     <!-- Statistics for today -->
                     @if(isset($deviceStatistics[$device->id]))
-                        <div class="device-stats mb-3">
-                            <small class="text-muted d-block mb-2"><strong>Statistik Hari Ini:</strong></small>
-                            <small class="d-block">
-                                <i class="fas fa-thermometer-half"></i> 
-                                Rata-rata: {{ $deviceStatistics[$device->id]['avg_temp'] }}°C | 
-                                Max: {{ $deviceStatistics[$device->id]['max_temp'] }}°C | 
-                                Min: {{ $deviceStatistics[$device->id]['min_temp'] }}°C
-                            </small>
-                            <small class="d-block">
-                                <i class="fas fa-droplet"></i> 
-                                Rata-rata: {{ $deviceStatistics[$device->id]['avg_humidity'] }}% | 
-                                Max: {{ $deviceStatistics[$device->id]['max_humidity'] }}% | 
-                                Min: {{ $deviceStatistics[$device->id]['min_humidity'] }}%
-                            </small>
-                            <small class="d-block text-danger mt-2">
-                                ⚠️ Kondisi tidak normal: {{ $deviceStatistics[$device->id]['unsafe_count'] }} kali
-                            </small>
+                        <div class="device-stats mt-4 bg-light rounded-3 p-3 border">
+                            <div class="text-muted mb-2" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Statistik Hari Ini</div>
+                            
+                            <div class="d-flex justify-content-between mb-2 pb-2 border-bottom" style="font-size: 0.85rem;">
+                                <div><i class="fas fa-temperature-half text-danger"></i> Suhu</div>
+                                <div class="text-end">
+                                    <span class="fw-bold">{{ $deviceStatistics[$device->id]['avg_temp'] }}°C</span> (Rata)<br>
+                                    <span class="text-muted" style="font-size: 0.75rem;">Max: {{ $deviceStatistics[$device->id]['max_temp'] }}° | Min: {{ $deviceStatistics[$device->id]['min_temp'] }}°</span>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mb-2" style="font-size: 0.85rem;">
+                                <div><i class="fas fa-droplet text-info"></i> Lembap</div>
+                                <div class="text-end">
+                                    <span class="fw-bold">{{ $deviceStatistics[$device->id]['avg_humidity'] }}%</span> (Rata)<br>
+                                    <span class="text-muted" style="font-size: 0.75rem;">Max: {{ $deviceStatistics[$device->id]['max_humidity'] }}% | Min: {{ $deviceStatistics[$device->id]['min_humidity'] }}%</span>
+                                </div>
+                            </div>
+
+                            @if($deviceStatistics[$device->id]['unsafe_count'] > 0)
+                            <div class="mt-2 pt-2 border-top text-danger" style="font-size: 0.8rem;">
+                                ⚠️ <strong>{{ $deviceStatistics[$device->id]['unsafe_count'] }} kali</strong> kondisi tidak normal hari ini
+                            </div>
+                            @endif
                         </div>
                     @endif
 
-                    <hr>
-                    <small class="text-muted device-recorded-time">
-                        <i class="fas fa-clock"></i> 
-                        Terakhir diperbarui: 
-                        @php
-                            $diffMinutes = now()->diffInMinutes($monitoring->recorded_at);
-                            if ($diffMinutes < 0) {
-                                echo 'sekarang';
-                            } elseif ($diffMinutes === 0) {
-                                echo 'sekarang';
-                            } elseif ($diffMinutes === 1) {
-                                echo '1 menit lalu';
-                            } elseif ($diffMinutes < 60) {
-                                echo $diffMinutes . ' menit lalu';
-                            } else {
-                                $hours = intval($diffMinutes / 60);
-                                echo ($hours === 1 ? '1 jam' : $hours . ' jam') . ' lalu';
-                            }
-                        @endphp
-                    </small>
+                    <div class="mt-4 text-center">
+                        <span class="device-recorded-time badge bg-light text-muted border px-3 py-2 rounded-pill shadow-sm">
+                            <i class="fas fa-clock me-1"></i> Terakhir diperbarui: 
+                            @php
+                                $diffMinutes = now()->diffInMinutes($monitoring->recorded_at);
+                                if ($diffMinutes < 0) {
+                                    echo 'sekarang';
+                                } elseif ($diffMinutes === 0) {
+                                    echo 'sekarang';
+                                } elseif ($diffMinutes === 1) {
+                                    echo '1 menit lalu';
+                                } elseif ($diffMinutes < 60) {
+                                    echo $diffMinutes . ' menit lalu';
+                                } else {
+                                    $hours = intval($diffMinutes / 60);
+                                    echo ($hours === 1 ? '1 jam' : $hours . ' jam') . ' lalu';
+                                }
+                            @endphp
+                        </span>
+                    </div>
                 @else
                     <div class="text-center py-5">
                         <p class="text-muted">Belum ada data monitoring</p>
                     </div>
                 @endif
             </div>
+        </div>
+            </div>
+            
+            <!-- Kolom Kanan: Grafik -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-chart-area text-primary me-2"></i> Grafik Suhu & Kelembapan</h5>
+                                <span class="chart-live-badge live-badge offline"><span class="live-dot disconnected" style="width:7px;height:7px;margin:0;"></span> OFFLINE</span>
+                            </div>
+                            <div>
+                                <select class="form-select form-select-sm border-0 bg-light chart-timeframe-select" data-device-id="{{ $device->id }}" style="width: auto; cursor: pointer;">
+                                    <option value="1_hour">1 Jam Terakhir</option>
+                                    <option value="6_hours">6 Jam Terakhir</option>
+                                    <option value="12_hours">12 Jam Terakhir</option>
+                                    <option value="1_day">24 Jam Terakhir</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 position-relative">
+                        <!-- Loading Overlay: HIDDEN by default, ditampilkan via JS saat fetch -->
+                        <div id="chart-loading-{{ $device->id }}"
+                             style="display:none; position:absolute; z-index:10; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.93); border-radius:12px; flex-direction:column; justify-content:center; align-items:center; gap:8px;">
+                            <div class="spinner-border text-primary" role="status" style="width:1.8rem;height:1.8rem;">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <small class="text-muted fw-semibold" style="font-size:0.78rem;">Memuat grafik...</small>
+                        </div>
+                        
+                        <!-- Chart Canvas -->
+                        <div class="chart-container" style="position:relative; height:300px; width:100%;">
+                            <canvas id="realtimeChart-{{ $device->id }}"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         </div>
     </div>
     @empty
@@ -286,40 +277,166 @@
     @endforelse
 </div>
 
-<!-- Quick Actions -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-bolt"></i> Akses Cepat</h5>
+<!-- All Devices Status Indicator -->
+@include('partials.devices-status')
+
+<!-- Overview KPI Cards -->
+<div class="row mb-4">
+    <div class="col-md-4 col-sm-6 mb-3">
+        <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden">
+            <div class="position-absolute top-0 start-0 w-100" style="height: 4px; background: linear-gradient(90deg, #10b981, #34d399);"></div>
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted mb-1 fw-bold" style="font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Total Ruangan</p>
+                        <h2 class="mb-0 fw-bold text-dark" style="font-size: 2.2rem;">{{ count($devices) }}</h2>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(16, 185, 129, 0.1);">
+                        <i class="fas fa-door-open text-success fs-4"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-muted" style="font-size: 0.85rem;">
+                    <i class="fas fa-check-circle text-success me-1"></i> <span class="fw-bold">{{ $safeCount }}</span> Ruangan Aman
+                </div>
             </div>
-            <div class="card-body">
-                <div class="btn-group" role="group">
-                    <a href="{{ route('monitoring.history') }}" class="btn btn-outline-primary">
-                        <i class="fas fa-history"></i> Lihat Riwayat
-                    </a>
-                    <a href="{{ route('monitoring.chart') }}" class="btn btn-outline-primary">
-                        <i class="fas fa-chart-area"></i> Lihat Grafik
-                    </a>
-                    <a href="{{ route('monitoring.hourly-trend') }}" class="btn btn-outline-info">
-                        <i class="fas fa-chart-line"></i> Tren Harian
-                    </a>
-                    <a href="{{ route('reports.index') }}" class="btn btn-outline-success">
-                        <i class="fas fa-download"></i> Export Laporan
-                    </a>
-                    @if(auth()->user()->role === 'admin')
-                        <a href="{{ route('device.index') }}" class="btn btn-outline-primary">
-                            <i class="fas fa-microchip"></i> Kelola Device
-                        </a>
-                        <a href="{{ route('login-logs.index') }}" class="btn btn-outline-warning">
-                            <i class="fas fa-sign-in-alt"></i> Riwayat Login
-                        </a>
+        </div>
+    </div>
+    
+    <div class="col-md-4 col-sm-6 mb-3">
+        <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden">
+            <div class="position-absolute top-0 start-0 w-100" style="height: 4px; background: linear-gradient(90deg, #ef4444, #f87171);"></div>
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted mb-1 fw-bold" style="font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Ruangan Tidak Aman</p>
+                        <h2 class="mb-0 fw-bold text-dark" style="font-size: 2.2rem;">{{ $unsafeCount }}</h2>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(239, 68, 68, 0.1);">
+                        <i class="fas fa-exclamation-circle text-danger fs-4"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-muted" style="font-size: 0.85rem;">
+                    @if($unsafeCount > 0)
+                        <span class="text-danger fw-bold"><i class="fas fa-exclamation-triangle me-1"></i> Perlu tindakan segera</span>
+                    @else
+                        <i class="fas fa-shield-alt text-success me-1"></i> Sistem berjalan normal
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-sm-12 mb-3">
+        <div class="card h-100 border-0 shadow-sm rounded-4 position-relative overflow-hidden">
+            <div class="position-absolute top-0 start-0 w-100" style="height: 4px; background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div>
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted mb-1 fw-bold" style="font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Insiden Hari Ini</p>
+                        <h2 class="mb-0 fw-bold text-dark" style="font-size: 2.2rem;">{{ $todayUnsafeCount }}</h2>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: rgba(245, 158, 11, 0.1);">
+                        <i class="fas fa-bell text-warning fs-4"></i>
+                    </div>
+                </div>
+                <div class="mt-3" style="font-size: 0.85rem;">
+                    @if($todayUnsafeCount > 0)
+                        <div class="text-muted">Terjadi di ruangan:</div>
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                            @foreach($unsafeByDevice as $deviceName => $count)
+                                <span class="badge bg-light text-dark border">{{ $deviceName }} ({{ $count }}x)</span>
+                            @endforeach
+                        </div>
+                    @else
+                        <span class="text-success"><i class="fas fa-check me-1"></i> Belum ada insiden tercatat</span>
                     @endif
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+
+
+<!-- Quick Actions -->
+<div class="row mt-4 mb-5">
+    <div class="col-12">
+        <div class="d-flex align-items-center mb-3">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-bolt text-warning me-2"></i> Akses Cepat</h5>
+        </div>
+        <div class="row g-3">
+            <div class="col-6 col-md-3 col-lg-2">
+                <a href="{{ route('monitoring.history') }}" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3 hover-lift">
+                        <div class="mb-2"><i class="fas fa-history text-primary fs-3"></i></div>
+                        <span class="text-dark fw-bold" style="font-size: 0.85rem;">Liwayat</span>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <a href="{{ route('monitoring.chart') }}" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3 hover-lift">
+                        <div class="mb-2"><i class="fas fa-chart-area text-info fs-3"></i></div>
+                        <span class="text-dark fw-bold" style="font-size: 0.85rem;">Grafik</span>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <a href="{{ route('monitoring.hourly-trend') }}" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3 hover-lift">
+                        <div class="mb-2"><i class="fas fa-chart-line text-success fs-3"></i></div>
+                        <span class="text-dark fw-bold" style="font-size: 0.85rem;">Tren Harian</span>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <a href="{{ route('reports.index') }}" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3 hover-lift">
+                        <div class="mb-2"><i class="fas fa-file-pdf text-danger fs-3"></i></div>
+                        <span class="text-dark fw-bold" style="font-size: 0.85rem;">Export PDF</span>
+                    </div>
+                </a>
+            </div>
+            @if(auth()->user()->role === 'admin')
+            <div class="col-6 col-md-3 col-lg-2">
+                <a href="{{ route('device.index') }}" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3 hover-lift">
+                        <div class="mb-2"><i class="fas fa-microchip text-secondary fs-3"></i></div>
+                        <span class="text-dark fw-bold" style="font-size: 0.85rem;">Device</span>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <a href="{{ route('login-logs.index') }}" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3 hover-lift">
+                        <div class="mb-2"><i class="fas fa-users-cog text-warning fs-3"></i></div>
+                        <span class="text-dark fw-bold" style="font-size: 0.85rem;">Riwayat Login</span>
+                    </div>
+                </a>
+            </div>
+            @endif
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+}
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .fan-spin {
+        animation: spin 1s linear infinite;
+        transform-origin: center;
+    }
+</style>
 
 <!-- Recent Login Activity (for admin reference) -->
 @if(auth()->user()->role === 'admin' && count($recentLoginLogs) > 0)
@@ -330,8 +447,9 @@
                 <h5 class="mb-0"><i class="fas fa-sign-in-alt"></i> Aktivitas Login Terbaru</h5>
             </div>
             <div class="card-body">
-                <table class="table table-sm table-hover mb-0">
-                    <thead>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
                         <tr>
                             <th>Petugas</th>
                             <th>Waktu Login</th>
@@ -352,6 +470,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
                 <div class="mt-3">
                     <a href="{{ route('login-logs.index') }}" class="btn btn-sm btn-outline-secondary">
                         Lihat Semua Riwayat Login
@@ -402,367 +521,605 @@
         padding: 0.75rem;
         border-radius: 0.25rem;
     }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .fan-spin {
+        animation: spin 1s linear infinite;
+        transform-origin: center;
+    }
+    @keyframes glow {
+        0% { filter: drop-shadow(0 0 2px rgba(255, 193, 7, 0.4)); opacity: 0.8; }
+        50% { filter: drop-shadow(0 0 10px rgba(255, 193, 7, 0.9)); opacity: 1; }
+        100% { filter: drop-shadow(0 0 2px rgba(255, 193, 7, 0.4)); opacity: 0.8; }
+    }
+    
+    .lamp-glow {
+        animation: glow 2s infinite alternate;
+    }
 </style>
 
-<!-- Realtime Dashboard JavaScript -->
-<script>
-// Realtime dashboard polling for ESP8266 connection status & data updates
-const POLLING_INTERVAL = 10000; // 10 seconds
-let lastConnectionStates = {}; // Track previous connection states
-let connectionNotificationShown = {}; // Track which devices have shown notifications
-let realtimePollInterval = null;
-let lastEspStatus = null;
-let espConnectedShown = false;
-let espDisconnectedShown = false;
+<!-- ================================================================
+     REAL-TIME DASHBOARD ENGINE
+     - Poll setiap 5 detik dari /api/monitoring/dashboard/realtime
+     - Chart append titik baru (bukan reload penuh)
+     - Chart scrolling otomatis (max 60 titik = ~10 menit data)
+     - Animasi flip nilai suhu & kelembaban
+     - Live blinking dot indikator koneksi
+================================================================ -->
+<style>
+/* ---- Live indicator dot ---- */
+@keyframes blink-green {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.6); }
+    50%       { opacity: 0.7; box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+}
+@keyframes blink-red {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+}
+.live-dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+.live-dot.connected    { background: #22c55e; animation: blink-green 1.2s ease infinite; }
+.live-dot.disconnected { background: #ef4444; animation: blink-red  1s  linear infinite; }
 
-// HANYA SATU DOMContentLoaded listener - GABUNG SEMUA LOGIC DI SINI
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Dashboard realtime monitoring started');
-    
-    // Fetch immediately
-    fetchRealtimeData();
-    
-    // Start polling setiap 1 detik untuk update real-time
-    realtimePollInterval = setInterval(fetchRealtimeData, 1000);
-    
-    console.log('✅ Real-time polling initialized (every 1 second)');
+/* ---- Nilai update: hanya bold, tidak ada animasi yang ganggu warna ---- */
+
+/* ---- Live badge di header grafik ---- */
+.live-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(34,197,94,0.12);
+    color: #16a34a;
+    border: 1px solid rgba(34,197,94,0.35);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+.live-badge.offline {
+    background: rgba(239,68,68,0.1);
+    color: #dc2626;
+    border-color: rgba(239,68,68,0.3);
+}
+
+/* ---- Fan spin ---- */
+@keyframes spin { to { transform: rotate(360deg); } }
+.fan-spin { animation: spin 0.8s linear infinite; transform-origin: center; }
+
+/* ---- Heater glow ---- */
+@keyframes glow {
+    0%, 100% { filter: drop-shadow(0 0 2px rgba(251,191,36,0.4)); }
+    50%       { filter: drop-shadow(0 0 10px rgba(251,191,36,1)); }
+}
+.lamp-glow { animation: glow 1.5s ease infinite; }
+
+/* ---- Refresh spinner ---- */
+@keyframes rotate { to { transform: rotate(360deg); } }
+.spinning { animation: rotate 1s linear infinite; }
+
+/* ---- hover card lift ---- */
+.hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.hover-lift:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; }
+</style>
+
+<script>
+// ================================================================
+//  KONFIGURASI
+// ================================================================
+const RT_INTERVAL     = 3000;   // Poll API setiap 3 detik
+const CHART_MAX_PTS   = 60;     // Maksimal titik di chart (60 × 10s = 10 menit)
+const CHART_TIMEOUTS  = { '1_hour': 3600, '6_hours': 21600, '12_hours': 43200, '1_day': 86400 };
+
+// ================================================================
+//  STATE
+// ================================================================
+const deviceCharts        = {};   // { deviceId: Chart instance }
+const chartDataBuffer     = {};   // { deviceId: { labels:[], temps:[], hums:[] } }
+const lastSeenTimestamps  = {};   // { deviceId: ISO string } - deteksi data baru
+const lastConnectionStates = {};
+const connectionNotifShown = {};
+let   pollInterval        = null;
+let   clockInterval       = null;
+let   isPollRunning       = false;
+
+// ================================================================
+//  BOOT
+// ================================================================
+document.addEventListener('DOMContentLoaded', function () {
+
+    // Sembunyikan semua loading overlay
+    document.querySelectorAll('[id^="chart-loading-"]').forEach(el => el.style.display = 'none');
+
+    // Inisialisasi chart kosong untuk tiap device
+    document.querySelectorAll('.device-monitor').forEach(el => {
+        const did = el.dataset.deviceId;
+        if (!did) return;
+
+        chartDataBuffer[did] = { labels: [], temps: [], hums: [] };
+        initRealtimeChart(did);
+
+        // Event timeframe select → load ulang data historis
+        const sel = el.querySelector('.chart-timeframe-select');
+        if (sel) {
+            sel.addEventListener('change', () => loadHistoricalChart(did, sel.value));
+        }
+    });
+
+    // Load data historis pertama (1 jam terakhir)
+    document.querySelectorAll('.device-monitor').forEach(el => {
+        const did = el.dataset.deviceId;
+        if (did) loadHistoricalChart(did, '1_hour');
+    });
+
+    // Jalankan polling realtime
+    pollRealtimeData();
+    pollInterval = setInterval(pollRealtimeData, RT_INTERVAL);
+
+    // Live clock
+    updateClock();
+    clockInterval = setInterval(updateClock, 1000);
+
+    console.log('🚀 Real-time dashboard aktif (interval=' + RT_INTERVAL + 'ms)');
 });
 
-// Fetch realtime data from API
-function fetchRealtimeData() {
-    try {
-        fetch('/api/monitoring/dashboard/realtime')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`API returned ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success && data.data) {
-                    try {
-                        updateRealtimeDashboard(data.data);
-                        console.log('📊 Dashboard API timestamp:', data.timestamp, 'Type:', typeof data.timestamp);
-                        updateLastUpdateTime(data.timestamp);
-                    } catch(e) {
-                        console.error('❌ Error updating dashboard UI:', e);
-                    }
-                } else {
-                    console.warn('⚠️ API response not successful:', data);
-                }
-            })
-            .catch(error => {
-                console.error('❌ Error fetching realtime data:', error);
-            });
-    } catch(error) {
-        console.error('❌ Fatal fetch error:', error);
+// ================================================================
+//  LIVE CLOCK
+// ================================================================
+function updateClock() {
+    const el = document.getElementById('lastUpdateTime');
+    if (el && !el.dataset.dirty) {
+        const now = new Date();
+        el.textContent = now.toLocaleTimeString('id-ID');
     }
 }
 
-// Update dashboard with realtime data
-function updateRealtimeDashboard(devicesData) {
+// ================================================================
+//  POLLING REALTIME
+// ================================================================
+async function pollRealtimeData() {
+    if (isPollRunning) return;
+    isPollRunning = true;
+
+    // Spinner
+    const spinner = document.getElementById('refreshSpinner');
+    if (spinner) spinner.classList.add('spinning');
+
     try {
-        if (!devicesData || !Array.isArray(devicesData)) {
-            console.warn('Invalid devices data format');
-            return;
-        }
-        
-        devicesData.forEach(device => {
-            try {
-                console.log(`📱 Processing Device ${device.id} (${device.device_name}): is_connected=${device.is_connected}, connection_status=${device.connection_status}`);
-                
-                const deviceCard = document.querySelector(`[data-device-id="${device.id}"]`);
-                
-                if (!deviceCard) {
-                    console.warn(`Device card not found for ID: ${device.id}`);
-                    return;
-                }
-
-                // Update temperature & humidity
-                if (device.temperature !== null) {
-                    const tempElement = deviceCard.querySelector('.device-temp-value');
-                    const humidityElement = deviceCard.querySelector('.device-humidity-value');
-                    
-                    if (tempElement) {
-                        tempElement.textContent = device.temperature.toFixed(1);
-                        // Update color based on safe range
-                        const tempDisplay = deviceCard.querySelector('.device-temperature');
-                        if (device.temperature < 15 || device.temperature > 30) {
-                            tempDisplay.classList.remove('text-success');
-                            tempDisplay.classList.add('text-danger');
-                        } else {
-                            tempDisplay.classList.remove('text-danger');
-                            tempDisplay.classList.add('text-success');
-                        }
-                    }
-                    
-                    if (humidityElement) {
-                        humidityElement.textContent = device.humidity.toFixed(1);
-                        // Update color based on safe range
-                        const humidityDisplay = deviceCard.querySelector('.device-humidity');
-                        if (device.humidity < 35 || device.humidity > 60) {
-                            humidityDisplay.classList.remove('text-success');
-                            humidityDisplay.classList.add('text-danger');
-                        } else {
-                            humidityDisplay.classList.remove('text-danger');
-                            humidityDisplay.classList.add('text-success');
-                        }
-                    }
-                }
-
-                // Update connection status
-                const connectionIcon = deviceCard.querySelector('.device-connection-icon');
-                const connectionStatus = deviceCard.querySelector('.device-connection-status');
-                const lastUpdateElement = deviceCard.querySelector('.device-last-update');
-                
-                console.log(`🔌 Device ${device.id}: Found connectionStatus element: ${!!connectionStatus}, Current text: "${connectionStatus?.textContent}"`);
-                
-                if (connectionIcon && connectionStatus) {
-                    const wasConnected = lastConnectionStates[device.id] !== false;
-                    const isNowConnected = device.is_connected;
-                    
-                    if (isNowConnected) {
-                        connectionIcon.style.color = '#28a745'; // Green
-                        connectionStatus.textContent = 'TERHUBUNG';
-                        connectionIcon.className = 'fas fa-wifi device-connection-icon';
-                        console.log(`✅ Device ${device.id}: Updated to TERHUBUNG (green)`);
-                        
-                        // Show connected notification only if status changed
-                        if (!wasConnected || !connectionNotificationShown[device.id]) {
-                            showConnectedNotification(device.device_name);
-                            connectionNotificationShown[device.id] = true;
-                        }
-                    } else {
-                        connectionIcon.style.color = '#dc3545'; // Red
-                        connectionStatus.textContent = 'TIDAK TERHUBUNG';
-                        connectionIcon.className = 'fas fa-wifi-off device-connection-icon';
-                        console.log(`❌ Device ${device.id}: Updated to TIDAK TERHUBUNG (red)`);
-                        
-                        // Show disconnected notification only if status changed
-                        if (wasConnected || !connectionNotificationShown[device.id]) {
-                            showDisconnectedNotification(device.device_name);
-                            connectionNotificationShown[device.id] = true;
-                        }
-                    }
-                    
-                    lastConnectionStates[device.id] = isNowConnected;
-                }
-
-                // Update last update time
-                if (lastUpdateElement && device.minutes_ago !== null) {
-                    let timeText = '';
-                    if (device.minutes_ago === 0) {
-                        timeText = 'sekarang';
-                    } else if (device.minutes_ago === 1) {
-                        timeText = '1 menit lalu';
-                    } else if (device.minutes_ago < 60) {
-                        timeText = `${device.minutes_ago} menit lalu`;
-                    } else {
-                        const hours = Math.floor(device.minutes_ago / 60);
-                        timeText = hours === 1 ? '1 jam lalu' : `${hours} jam lalu`;
-                    }
-                    lastUpdateElement.textContent = timeText;
-                }
-
-                // Update status badge
-                const statusBadge = deviceCard.querySelector('.device-status-badge');
-                const statusText = deviceCard.querySelector('.device-status-text');
-                if (statusBadge && statusText && device.status) {
-                    statusText.textContent = device.status;
-                    if (device.status === 'Aman') {
-                        statusBadge.classList.remove('badge-tidak-aman');
-                        statusBadge.classList.add('badge-aman');
-                    } else {
-                        statusBadge.classList.remove('badge-aman');
-                        statusBadge.classList.add('badge-tidak-aman');
-                    }
-                }
-
-                // Update recorded time
-                const recordedTime = deviceCard.querySelector('.device-recorded-time');
-                if (recordedTime && device.last_update) {
-                    const lastUpdate = new Date(device.last_update);
-                    recordedTime.textContent = `⏰ Terakhir diperbarui: ${getRelativeTime(lastUpdate)}`;
-                }
-            } catch(deviceError) {
-                console.error(`❌ Error updating device ${device.id}:`, deviceError);
-            }
+        const res = await fetch('/api/monitoring/dashboard/realtime', {
+            headers: { 'Accept': 'application/json' }
         });
-    } catch(error) {
-        console.error('❌ Fatal error in updateRealtimeDashboard:', error);
-    }
-}
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const json = await res.json();
 
-// Show ESP8266 connected notification
-function showConnectedNotification(deviceName) {
-    try {
-        const alertEl = document.getElementById('espConnectedAlert');
-        const messageEl = document.getElementById('espConnectedMessage');
-        
-        if (alertEl && messageEl) {
-            messageEl.textContent = `✓ ESP8266 "${deviceName}" TERHUBUNG - Data diterima`;
-            alertEl.classList.remove('d-none');
-            
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                if (alertEl) {
-                    alertEl.classList.add('d-none');
-                }
-            }, 5000);
+        if (json.success && Array.isArray(json.data)) {
+            json.data.forEach(device => updateDeviceUI(device));
+            // Update clock
+            const el = document.getElementById('lastUpdateTime');
+            if (el) {
+                el.dataset.dirty = '1';
+                el.textContent = new Date().toLocaleTimeString('id-ID');
+                setTimeout(() => { if(el) delete el.dataset.dirty; }, 1500);
+            }
         }
-    } catch(error) {
-        console.warn('Error showing connected notification:', error);
+    } catch(e) {
+        console.warn('⚠️ Poll error:', e.message);
+    } finally {
+        isPollRunning = false;
+        if (spinner) spinner.classList.remove('spinning');
     }
 }
 
-// Show ESP8266 disconnected notification
-function showDisconnectedNotification(deviceName) {
-    try {
-        const alertEl = document.getElementById('espDisconnectedAlert');
-        const messageEl = document.getElementById('espDisconnectedMessage');
-        
-        if (alertEl && messageEl) {
-            messageEl.textContent = `⚠️ ESP8266 "${deviceName}" TIDAK TERHUBUNG - Periksa koneksi WiFi`;
-            alertEl.classList.remove('d-none');
-            // Do NOT auto-hide - user should dismiss manually
-        }
-    } catch(error) {
-        console.warn('Error showing disconnected notification:', error);
-    }
-}
+// ================================================================
+//  UPDATE UI SATU DEVICE
+// ================================================================
+function updateDeviceUI(device) {
+    const card = document.querySelector(`[data-device-id="${device.id}"]`);
+    if (!card) return;
 
-// Update the global "last updated" time
-function updateLastUpdateTime(timestamp) {
-    const element = document.getElementById('lastUpdateTime');
-    if (element) {
-        // Validasi timestamp - jika tidak valid, gunakan now
-        let time;
-        if (!timestamp || timestamp === 0 || timestamp === '0') {
-            console.log('📝 No timestamp provided, using current time');
-            time = new Date();
+    const isConnected  = device.is_connected;
+    const temp         = device.temperature;
+    const hum          = device.humidity;
+    const lastUpdate   = device.last_update; // ISO string
+
+    // ---- 1. Koneksi status ----
+    const dot     = card.querySelector('.live-dot');
+    const cLabel  = card.querySelector('.device-connection-status');
+    const cTime   = card.querySelector('.device-last-update');
+    const wifiIcon = card.querySelector('.device-connection-icon');
+
+    if (dot) {
+        dot.className = 'live-dot ' + (isConnected ? 'connected' : 'disconnected');
+    }
+    if (wifiIcon) {
+        // Update ikon & warna WiFi
+        wifiIcon.className = isConnected ? 'fas fa-wifi device-connection-icon' : 'fas fa-wifi-slash device-connection-icon';
+        wifiIcon.style.color = isConnected ? '#22c55e' : '#ef4444';
+    }
+    if (cLabel) {
+        cLabel.textContent = isConnected ? 'TERHUBUNG' : 'TIDAK TERHUBUNG';
+        cLabel.style.color = isConnected ? '#22c55e' : '#ef4444';
+    }
+    if (cTime && device.minutes_ago !== null) {
+        cTime.textContent = device.minutes_ago === 0 ? 'baru saja'
+            : device.minutes_ago < 60 ? device.minutes_ago + ' mnt lalu'
+            : Math.floor(device.minutes_ago / 60) + ' jam lalu';
+    }
+
+    // ---- 2. Live badge di header grafik ----
+    const liveBadge = card.querySelector('.chart-live-badge');
+    if (liveBadge) {
+        if (isConnected) {
+            liveBadge.className = 'live-badge';
+            liveBadge.innerHTML = '<span class="live-dot connected" style="width:7px;height:7px;margin:0;"></span> LIVE';
         } else {
-            console.log('📝 Processing timestamp:', timestamp, 'Type:', typeof timestamp);
-            
-            // Handle ISO8601 string format (dari API)
-            if (typeof timestamp === 'string' && (timestamp.includes('T') || timestamp.includes('-'))) {
-                console.log('📝 Detected ISO8601 format');
-                time = new Date(timestamp);
-            } else {
-                // Handle numeric timestamp (milliseconds or seconds)
-                const ts = typeof timestamp === 'string' ? parseInt(timestamp) : timestamp;
-                if (isNaN(ts)) {
-                    console.log('📝 Could not parse timestamp, using current time');
-                    time = new Date();
-                } else if (ts > 1000000000000) {
-                    // Already in milliseconds
-                    console.log('📝 Timestamp in milliseconds');
-                    time = new Date(ts);
-                } else if (ts > 0) {
-                    // Likely in seconds
-                    console.log('📝 Timestamp in seconds');
-                    time = new Date(ts * 1000);
-                } else {
-                    console.log('📝 Invalid numeric timestamp');
-                    time = new Date();
+            liveBadge.className = 'live-badge offline';
+            liveBadge.innerHTML = '<span class="live-dot disconnected" style="width:7px;height:7px;margin:0;"></span> OFFLINE';
+        }
+    }
+
+    // ---- 3. Nilai suhu & kelembaban ----
+    // Gunakan ID unik + style injection dengan !important untuk warna yang tidak bisa di-override
+    const C_DANGER  = '#dc3545';
+    const C_SUCCESS = '#198754';
+    const C_OFFLINE = '#6c757d';
+
+    if (temp !== null && temp !== undefined) {
+        const tempNum  = parseFloat(temp);
+        const tempStr  = isConnected ? tempNum.toFixed(1) : '0';
+        const tempEl   = document.getElementById(`temp-val-${device.id}`);
+        const tempColor = !isConnected ? C_OFFLINE
+            : (tempNum < 15 || tempNum > 30) ? C_DANGER : C_SUCCESS;
+
+        if (tempEl) {
+            tempEl.textContent = tempStr;
+            // Set warna di span angka DAN span satuan (°C) di sebelahnya
+            tempEl.style.setProperty('color', tempColor, 'important');
+            const unitEl = tempEl.nextElementSibling;
+            if (unitEl) unitEl.style.setProperty('color', tempColor, 'important');
+        }
+    }
+
+    if (hum !== null && hum !== undefined) {
+        const humNum   = parseFloat(hum);
+        const humStr   = isConnected ? humNum.toFixed(1) : '0';
+        const humEl    = document.getElementById(`hum-val-${device.id}`);
+        const humColor  = !isConnected ? C_OFFLINE
+            : (humNum < 35 || humNum > 60) ? C_DANGER : C_SUCCESS;
+
+        if (humEl) {
+            humEl.textContent = humStr;
+            // Set warna di span angka DAN span satuan (%) di sebelahnya
+            humEl.style.setProperty('color', humColor, 'important');
+            const unitEl = humEl.nextElementSibling;
+            if (unitEl) unitEl.style.setProperty('color', humColor, 'important');
+        }
+    }
+
+    // ---- 4. Status badge ----
+    const sBadge = card.querySelector('.device-status-badge');
+    const sText  = card.querySelector('.device-status-text');
+    if (sBadge && sText && device.status) {
+        sText.textContent = device.status;
+        sBadge.classList.toggle('badge-aman',       device.status === 'Aman');
+        sBadge.classList.toggle('badge-tidak-aman', device.status !== 'Aman');
+    }
+
+    // ---- 5. Kipas & Penghangat ----
+    if (temp !== null) {
+        const t   = parseFloat(temp);
+        const on  = isConnected;
+        const f1  = on && t >= 28;
+        const f2  = on && t >  30;
+        const htr = on && t <  28;
+
+        setHardwareStatus(device.id, 'fan1',   f1,  'bg-primary', 'NYALA', 'MATI');
+        setHardwareStatus(device.id, 'fan2',   f2,  'bg-primary', 'NYALA', 'MATI');
+        setHardwareStatus(device.id, 'heater', htr, 'bg-warning text-dark', 'NYALA', 'MATI');
+    }
+
+    // ---- 6. Timestamp terakhir ----
+    const recEl = card.querySelector('.device-recorded-time');
+    if (recEl && lastUpdate) {
+        recEl.innerHTML = `<i class="fas fa-clock me-1"></i> Terakhir diperbarui: ${getRelativeTime(new Date(lastUpdate))}`;
+    }
+
+    // ---- 7. Append ke chart jika ada data BARU ----
+    if (isConnected && temp !== null && lastUpdate) {
+        const prev = lastSeenTimestamps[device.id];
+        if (prev !== lastUpdate) {
+            lastSeenTimestamps[device.id] = lastUpdate;
+            appendChartPoint(device.id, lastUpdate, temp, hum);
+        }
+    } else if (!isConnected) {
+        // Device offline → tidak append
+    }
+
+    // ---- 8. Notifikasi koneksi berubah ----
+    const wasConn = lastConnectionStates[device.id];
+    if (wasConn !== undefined && wasConn !== isConnected) {
+        if (isConnected) showNotif('espConnectedAlert', 'espConnectedMessage',
+            `✓ ${device.device_name} TERHUBUNG – Data diterima`);
+        else showNotif('espDisconnectedAlert', 'espDisconnectedMessage',
+            `⚠️ ${device.device_name} TIDAK TERHUBUNG – Periksa koneksi WiFi`, false);
+    }
+    lastConnectionStates[device.id] = isConnected;
+}
+
+// ================================================================
+//  CHART: INISIALISASI KOSONG (REAL-TIME MODE)
+// ================================================================
+function initRealtimeChart(deviceId) {
+    const canvas = document.getElementById(`realtimeChart-${deviceId}`);
+    if (!canvas || deviceCharts[deviceId]) return;
+
+    const ctx = canvas.getContext('2d');
+
+    const tempGrad = ctx.createLinearGradient(0, 0, 0, 300);
+    tempGrad.addColorStop(0, 'rgba(239,68,68,0.28)');
+    tempGrad.addColorStop(1, 'rgba(239,68,68,0.02)');
+
+    const humGrad = ctx.createLinearGradient(0, 0, 0, 300);
+    humGrad.addColorStop(0, 'rgba(59,130,246,0.22)');
+    humGrad.addColorStop(1, 'rgba(59,130,246,0.02)');
+
+    deviceCharts[deviceId] = new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Suhu (°C)',
+                    data: [],
+                    borderColor: '#ef4444',
+                    backgroundColor: tempGrad,
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#ef4444',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 3,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Kelembapan (%)',
+                    data: [],
+                    borderColor: '#3b82f6',
+                    backgroundColor: humGrad,
+                    borderWidth: 2.5,
+                    borderDash: [6, 3],
+                    pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 3,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 400, easing: 'easeOutQuart' },
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true, pointStyle: 'circle',
+                        boxWidth: 10, padding: 20,
+                        font: { size: 12, weight: '600' }, color: '#374151'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15,23,42,0.92)',
+                    titleColor: '#f1f5f9',
+                    bodyColor: '#94a3b8',
+                    borderColor: 'rgba(255,255,255,0.08)',
+                    borderWidth: 1,
+                    padding: 12, boxPadding: 6,
+                    usePointStyle: true, cornerRadius: 10,
+                    callbacks: {
+                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y !== undefined ? ctx.parsed.y.toFixed(1) : '--'}${ctx.datasetIndex === 0 ? '°C' : '%'}`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false }, border: { display: false },
+                    ticks: { maxRotation: 0, maxTicksLimit: 8, color: '#9ca3af', font: { size: 10 } }
+                },
+                y: {
+                    type: 'linear', position: 'left',
+                    title: { display: true, text: 'Suhu (°C)', color: '#ef4444', font: { size: 11, weight: '600' } },
+                    grid: { color: 'rgba(0,0,0,0.04)' }, border: { display: false },
+                    ticks: { color: '#ef4444', font: { size: 11 } },
+                    suggestedMin: 20, suggestedMax: 40
+                },
+                y1: {
+                    type: 'linear', position: 'right',
+                    title: { display: true, text: 'Kelembapan (%)', color: '#3b82f6', font: { size: 11, weight: '600' } },
+                    grid: { drawOnChartArea: false }, border: { display: false },
+                    ticks: { color: '#3b82f6', font: { size: 11 } },
+                    suggestedMin: 20, suggestedMax: 100
                 }
             }
         }
-        
-        // Pastikan date valid
-        if (isNaN(time.getTime())) {
-            console.log('⚠️ Invalid date object, using current time');
-            time = new Date();
+    });
+}
+
+// ================================================================
+//  CHART: APPEND TITIK BARU (REAL-TIME SCROLL)
+// ================================================================
+function appendChartPoint(deviceId, isoTime, temp, hum) {
+    const chart = deviceCharts[deviceId];
+    if (!chart) return;
+
+    const label = new Date(isoTime).toLocaleTimeString('id-ID', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+
+    // Simpan di buffer
+    const buf = chartDataBuffer[deviceId];
+    buf.labels.push(label);
+    buf.temps.push(parseFloat(temp));
+    buf.hums.push(parseFloat(hum));
+
+    // Trim jika melebihi batas
+    if (buf.labels.length > CHART_MAX_PTS) {
+        buf.labels.shift();
+        buf.temps.shift();
+        buf.hums.shift();
+    }
+
+    // Update chart tanpa animasi panjang (lebih smooth)
+    chart.data.labels              = [...buf.labels];
+    chart.data.datasets[0].data   = [...buf.temps];
+    chart.data.datasets[1].data   = [...buf.hums];
+    chart.update('none'); // 'none' = tanpa animasi supaya lebih cepat
+}
+
+// ================================================================
+//  CHART: LOAD HISTORIS (saat pertama buka / ganti timeframe)
+// ================================================================
+function loadHistoricalChart(deviceId, timeframe) {
+    const loading = document.getElementById(`chart-loading-${deviceId}`);
+
+    // Show: gunakan 'flex' karena overlay pakai flex layout via inline style
+    const showLoading  = () => { if (loading) loading.style.display = 'flex'; };
+    const hideLoading  = () => { if (loading) loading.style.display = 'none'; };
+
+    // Pastikan tersembunyi dulu jika sebelumnya masih tampil
+    hideLoading();
+
+    // Tampilkan loading
+    showLoading();
+
+    fetch(`/api/monitoring/get-chart-data?device_id=${deviceId}&timeframe=${timeframe}`, {
+        headers: { 'Accept': 'application/json' }
+    })
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(res => {
+        if (!res.success || !res.data) return;
+        const { dates, temperatures, humidities } = res.data;
+
+        // Isi buffer dengan data historis
+        chartDataBuffer[deviceId] = {
+            labels: [...(dates || [])],
+            temps:  [...(temperatures || [])],
+            hums:   [...(humidities || [])]
+        };
+
+        // Trim jika lebih dari batas
+        const buf = chartDataBuffer[deviceId];
+        while (buf.labels.length > CHART_MAX_PTS) {
+            buf.labels.shift(); buf.temps.shift(); buf.hums.shift();
         }
-        
-        console.log('📝 Final time object:', time.toISOString(), 'Display:', getRelativeTime(time));
-        element.textContent = getRelativeTime(time);
+
+        const chart = deviceCharts[deviceId];
+        if (chart) {
+            chart.data.labels            = [...buf.labels];
+            chart.data.datasets[0].data  = [...buf.temps];
+            chart.data.datasets[1].data  = [...buf.hums];
+            chart.update();
+        }
+    })
+    .catch(e => console.warn('⚠️ Chart load error:', e.message))
+    .finally(() => { hideLoading(); });
+}
+
+// ================================================================
+//  HELPER: Animasi nilai berubah
+// ================================================================
+function animateValue(el, newVal) {
+    if (!el) return;
+
+    // Bandingkan secara numerik untuk menghindari false-mismatch
+    // antara format PHP (koma) vs JS (titik), misal "87,0" vs "87.0"
+    const currentNum = parseFloat(el.textContent);
+    const newNum     = parseFloat(newVal);
+    const valueChanged = isNaN(currentNum) || Math.abs(currentNum - newNum) >= 0.05;
+
+    // Selalu update text agar format konsisten (titik, bukan koma)
+    el.textContent = String(newVal);
+
+    // Animasi HANYA jika nilai benar-benar berubah
+    // Ini mencegah opacity-0 flash setiap 3 detik saat nilai sama
+    if (valueChanged) {
+        el.classList.remove('value-updated');
+        void el.offsetWidth; // force reflow
+        el.classList.add('value-updated');
     }
 }
 
-// Get relative time format (e.g., "2 menit lalu")
+// ================================================================
+//  HELPER: Set status kipas/penghangat
+// ================================================================
+function setHardwareStatus(deviceId, type, isOn, onBadgeClass, onLabel, offLabel) {
+    const icon  = document.getElementById(`${type}-icon-${deviceId}`);
+    const badge = document.getElementById(`${type}-badge-${deviceId}`);
+    if (!icon || !badge) return;
+
+    if (type === 'heater') {
+        icon.classList.toggle('lamp-glow',  isOn);
+        icon.classList.toggle('text-warning', isOn);
+        icon.classList.toggle('text-secondary', !isOn);
+        icon.classList.toggle('opacity-50', !isOn);
+    } else {
+        icon.classList.toggle('fan-spin', isOn);
+        icon.classList.toggle('text-primary', isOn);
+        icon.classList.toggle('text-secondary', !isOn);
+        icon.classList.toggle('opacity-50', !isOn);
+    }
+
+    badge.className = 'badge ' + (isOn ? onBadgeClass : 'bg-secondary');
+    badge.textContent = isOn ? onLabel : offLabel;
+}
+
+// ================================================================
+//  HELPER: Relative time
+// ================================================================
 function getRelativeTime(date) {
-    const now = new Date();
-    const diffMs = now - new Date(date);
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMins === 0) return 'sekarang';
-    if (diffMins === 1) return '1 menit lalu';
-    if (diffMins < 60) return `${diffMins} menit lalu`;
-    if (diffHours === 1) return '1 jam lalu';
-    if (diffHours < 24) return `${diffHours} jam lalu`;
-    if (diffDays === 1) return 'kemarin';
-    return `${diffDays} hari lalu`;
+    const ms   = Date.now() - date.getTime();
+    const secs = Math.floor(ms / 1000);
+    const mins = Math.floor(secs / 60);
+    const hrs  = Math.floor(mins / 60);
+    if (secs < 10)  return 'baru saja';
+    if (secs < 60)  return secs + ' detik lalu';
+    if (mins < 60)  return mins + ' menit lalu';
+    if (hrs  < 24)  return hrs  + ' jam lalu';
+    return Math.floor(hrs / 24) + ' hari lalu';
 }
 
-// Add rotation animation to refresh spinner during polling
-// Wrap dalam try-catch untuk avoid breaking other functionality
-try {
-    const originalFetch = window.fetch;
-    window.fetch = function(...args) {
-        try {
-            const spinner = document.getElementById('refreshSpinner');
-            if (spinner) {
-                spinner.style.animation = 'spin 1s linear infinite';
-            }
-        } catch(e) {
-            console.warn('Spinner animation error:', e);
-        }
-        
-        return originalFetch.apply(this, args).then(response => {
-            try {
-                const spinner = document.getElementById('refreshSpinner');
-                if (spinner) {
-                    spinner.style.animation = 'none';
-                }
-            } catch(e) {
-                console.warn('Spinner animation clear error:', e);
-            }
-            return response;
-        }).catch(error => {
-            console.warn('Fetch error:', error);
-            throw error;
-        });
-    };
-} catch(e) {
-    console.warn('Could not setup fetch override:', e);
+// ================================================================
+//  HELPER: Notifikasi
+// ================================================================
+function showNotif(alertId, msgId, text, autoHide = true) {
+    const alertEl = document.getElementById(alertId);
+    const msgEl   = document.getElementById(msgId);
+    if (!alertEl || !msgEl) return;
+    msgEl.textContent = text;
+    alertEl.classList.remove('d-none');
+    if (autoHide) setTimeout(() => alertEl.classList.add('d-none'), 5000);
 }
 
-// Add CSS for spinner animation
-try {
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-    `;
-    document.head.appendChild(style);
-    console.log('✅ Spinner animation CSS loaded');
-} catch(error) {
-    console.warn('⚠️ Could not add spinner animation CSS:', error);
-}
-
-// ============================================
-// ✅ REAL-TIME MONITORING (IMPLEMENTED ABOVE)
-// ============================================
-// Real-time polling sudah dijalankan di DOMContentLoaded listener
-// Menggunakan: fetchRealtimeData() + updateRealtimeDashboard()
-// Endpoint: /api/monitoring/dashboard/realtime
-// Update interval: 1 detik (1000ms)
-// ⚠️ DEPRECATED FUNCTIONS REMOVED:
-// - Old fetchRealtimeData() (used /api/monitoring/realtime/latest)
-// - updateIndicators() (duplicate logic)
-// - updateEspStatus() (duplicate logic)
-// - updateDeviceCards() (duplicate logic using esp_online field)
-// These were causing conflicts with the correct real-time polling system
-
-window.addEventListener('beforeunload', function() {
-    if (realtimePollInterval) {
-        clearInterval(realtimePollInterval);
-        console.log('🛑 Real-time polling stopped');
-    }
+// ================================================================
+//  CLEANUP
+// ================================================================
+window.addEventListener('beforeunload', () => {
+    clearInterval(pollInterval);
+    clearInterval(clockInterval);
 });
 </script>
 @endsection

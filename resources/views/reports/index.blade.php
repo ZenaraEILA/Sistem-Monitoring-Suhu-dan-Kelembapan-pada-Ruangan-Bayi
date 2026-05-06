@@ -3,7 +3,7 @@
 @section('title', 'Export Laporan - Sistem Monitoring Suhu Bayi')
 
 @section('content')
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 reports-container">
     <div class="row mb-4">
         <div class="col-12">
             <h1 class="h3">📊 Export Laporan Monitoring</h1>
@@ -68,7 +68,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-download"></i> Unduh Laporan
+                            <i class="fas fa-download"></i> Unduh Laporan
                         </button>
                     </form>
 
@@ -131,7 +131,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-info w-100">
-                            <i class="bi bi-download"></i> Unduh Laporan
+                            <i class="fas fa-download"></i> Unduh Laporan
                         </button>
                     </form>
 
@@ -192,7 +192,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-success w-100">
-                            <i class="bi bi-download"></i> Unduh Laporan
+                            <i class="fas fa-download"></i> Unduh Laporan
                         </button>
                     </form>
 
@@ -269,8 +269,10 @@
 </div>
 
 <style>
-    .container-fluid {
+    .reports-container {
         background-color: #f8f9fa;
+        border-radius: 8px;
+        padding-bottom: 2rem;
     }
     .card {
         border: none;
